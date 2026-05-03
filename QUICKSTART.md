@@ -139,4 +139,4 @@ or
 
 ## Next Step
 
-For more detail, see [instructions.md](instructions.md) and the main [README.md](README.md).
+For more detail, see [INSTRUCTIONS.md](INSTRUCTIONS.md) and the main [README.md](README.md).
