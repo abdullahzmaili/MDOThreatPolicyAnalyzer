@@ -336,4 +336,4 @@ Use:
 ## Related Files
 
 - [README.md](README.md)
-- [quickstart.md](quickstart.md)
+- [QUICKSTART.md](QUICKSTART.md)
