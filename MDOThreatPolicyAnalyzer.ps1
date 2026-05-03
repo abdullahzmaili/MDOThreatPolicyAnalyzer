@@ -379,7 +379,28 @@ function Ensure-ExchangeOnlineModule {
     }
 
     Write-Log -Message 'Installing ExchangeOnlineManagement module for current user.' -Color Yellow
+    # Ensure TLS 1.2 for PSGallery connectivity
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+
+    # Ensure NuGet provider is available (required for Install-Module)
+    $nuget = Get-PackageProvider -Name NuGet -ListAvailable -ErrorAction SilentlyContinue |
+        Sort-Object Version -Descending | Select-Object -First 1
+    if (-not $nuget -or $nuget.Version -lt [Version]'2.8.5.201') {
+        Write-Log -Message 'Installing NuGet package provider...' -Color Yellow
+        Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force -Scope CurrentUser -ErrorAction Stop
+    }
+
     Install-Module -Name ExchangeOnlineManagement -Scope CurrentUser -AllowClobber -Force -ErrorAction Stop
+
+    # Refresh module path so Import-Module can find the newly installed module
+    $userModulePath = Join-Path ([Environment]::GetFolderPath('MyDocuments')) 'PowerShell\Modules'
+    $userModulePathWinPS = Join-Path ([Environment]::GetFolderPath('MyDocuments')) 'WindowsPowerShell\Modules'
+    foreach ($p in @($userModulePath, $userModulePathWinPS)) {
+        if ((Test-Path $p) -and ($env:PSModulePath -notlike "*$p*")) {
+            $env:PSModulePath = "$p;$env:PSModulePath"
+        }
+    }
+
     Import-Module ExchangeOnlineManagement -ErrorAction Stop
     Write-Log -Message 'ExchangeOnlineManagement installed successfully.' -Level SUCCESS -Color Green
 }
@@ -1681,7 +1702,7 @@ function Invoke-ConnectorSecurityChecks {
 }
 #endregion
 
-#region Phase 5 â€” Impersonation Protection
+#region Phase 5 — Impersonation Protection
 function Invoke-ImpersonationProtectionChecks {
     param(
         [System.Collections.Generic.List[object]]$Findings,
@@ -1765,7 +1786,7 @@ function Invoke-ImpersonationProtectionChecks {
 }
 #endregion
 
-#region Phase 5 â€” Allow/Block List Audit
+#region Phase 5 — Allow/Block List Audit
 function Invoke-AllowBlockListAudit {
     param(
         [System.Collections.Generic.List[object]]$Findings
@@ -1810,7 +1831,7 @@ function Invoke-AllowBlockListAudit {
 }
 #endregion
 
-#region Phase 5 â€” Advanced Delivery Policy Check
+#region Phase 5 — Advanced Delivery Policy Check
 function Invoke-AdvancedDeliveryChecks {
     param(
         [System.Collections.Generic.List[object]]$Findings
@@ -1873,7 +1894,7 @@ function Invoke-AdvancedDeliveryChecks {
 }
 #endregion
 
-#region Phase 5 â€” Audit Log Verification
+#region Phase 5 — Audit Log Verification
 function Invoke-AuditLogChecks {
     param(
         [System.Collections.Generic.List[object]]$Findings
@@ -1905,7 +1926,7 @@ function Invoke-AuditLogChecks {
 }
 #endregion
 
-#region Phase 5 â€” ATP Coverage Gap Detection
+#region Phase 5 — ATP Coverage Gap Detection
 function Invoke-AtpCoverageGapChecks {
     param(
         [System.Collections.Generic.List[object]]$Findings,
@@ -1964,7 +1985,7 @@ function Invoke-AtpCoverageGapChecks {
 }
 #endregion
 
-#region Phase 5 â€” Zero-Hour Auto Purge (ZAP) Effectiveness
+#region Phase 5 — Zero-Hour Auto Purge (ZAP) Effectiveness
 function Invoke-ZapEffectivenessChecks {
     param(
         [System.Collections.Generic.List[object]]$Findings,
@@ -2022,7 +2043,7 @@ function Invoke-ZapEffectivenessChecks {
 }
 #endregion
 
-#region Phase 5 â€” Outbound Spam Notification Validation
+#region Phase 5 — Outbound Spam Notification Validation
 function Invoke-OutboundSpamNotificationChecks {
     param(
         [System.Collections.Generic.List[object]]$Findings,
@@ -2104,7 +2125,7 @@ function Invoke-AdditionalSecurityChecks {
     Invoke-TransportRuleBypassChecks -Findings $Findings -AllData $AllData
     Invoke-ConnectorSecurityChecks -Findings $Findings -AllData $AllData
 
-    # Phase 5 checks â€” Extra Protection Layers
+    # Phase 5 checks — Extra Protection Layers
     Invoke-ImpersonationProtectionChecks -Findings $Findings -AllData $AllData
     Invoke-AllowBlockListAudit -Findings $Findings
     Invoke-AdvancedDeliveryChecks -Findings $Findings
