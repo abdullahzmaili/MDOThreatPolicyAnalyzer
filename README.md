@@ -2,7 +2,7 @@
 
 Assess Microsoft Defender for Office 365 (MDO) threat protection settings against Microsoft's recommended **Standard** and **Strict** baselines.
 
-`MDOThreatPolicyAnalyzer.ps1` connects to Exchange Online, reviews your tenant's email threat protection policies, and produces a polished HTML report with optional CSV exports so administrators can quickly spot gaps and prioritize remediation.
+`MDOThreatPolicyAnalyzer.ps1` connects to Exchange Online, reviews your tenant's email threat protection policies, and produces an interactive HTML report with optional CSV exports so administrators can quickly spot gaps and prioritize remediation.
 
 ## Key Features
 
@@ -19,23 +19,34 @@ Assess Microsoft Defender for Office 365 (MDO) threat protection settings agains
 - Optional CSV export of collected policy objects, rules, assessment results, and additional findings
 - Friendly output for administrators who want actionable recommendations, not just raw configuration data
 
-## Screenshots
-
-> _Screenshot placeholders — add report images here before publishing._
-
-- Executive summary view
-- Category scorecards
-- Detailed findings section
-- Additional security checks section
-
 ## Requirements
 
 - Windows PowerShell **5.1 or later**
 - **ExchangeOnlineManagement** PowerShell module
 - Microsoft 365 permissions sufficient to read Exchange Online / Defender for Office 365 policy configuration
-- Ability to authenticate interactively to:
+- Ability to authenticate to:
   - Exchange Online PowerShell
   - Security & Compliance PowerShell
+  - …interactively (default), **or** unattended via app-only certificate authentication (`-AppId` / `-Organization` / `-CertificateThumbprint`)
+
+## 🔒 Security Notice
+
+- **Least privilege** — run with a read-only role such as **Global Reader** or **Security Reader**; do not use Global Administrator. The script only reads policy configuration and never changes tenant settings.
+- **App-only auth for automation** — prefer certificate-based app-only authentication (`-AppId` / `-Organization` / `-CertificateThumbprint`) for unattended runs. It avoids interactive prompts and supports least-privilege service principals.
+- **Output classification** — the HTML report, `.log`, and companion CSVs are **CONFIDENTIAL**. They contain policy names, accepted domains, mailbox/UPN references, connector details, and other security-relevant configuration. Apply your organization's sensitivity label and share only via protected channels.
+- **Input & injection hardening** — CSV / Excel exports are hardened against spreadsheet formula injection. String values beginning with `=`, `+`, `-`, `@`, tab, or carriage return are neutralized (prefixed with `'`) in both the server-side CSVs and the in-report *Export to Excel* feature, so a maliciously named policy or rule cannot execute a formula when opened.
+- **Location** — run the script from a non-synced local directory (avoid OneDrive/SharePoint/Desktop sync folders), and store the `Output` folder in an access-controlled location.
+- **Cleanup** — delete report and CSV output after review per your retention policy, and disconnect sessions when finished:
+
+  ```powershell
+  Disconnect-ExchangeOnline -Confirm:$false
+  ```
+
+- **Integrity** — the script is Authenticode signed for tamper detection. Verify the signature before running (Subject `CN=AbdullahZmailiCodeSigningMDOThreatPolicyAnalyzer`, Thumbprint `697A6E565CD9B3B93E3CD2435B8AFE1A24D99672`):
+
+  ```powershell
+  Get-AuthenticodeSignature .\MDOThreatPolicyAnalyzer.ps1
+  ```
 
 ## Quick Install / Usage
 
@@ -59,6 +70,17 @@ Example with common options:
   -SkipBrowserOpen
 ```
 
+Unattended run with app-only certificate authentication (no interactive prompt):
+
+```powershell
+.\MDOThreatPolicyAnalyzer.ps1 `
+  -AppId "00000000-0000-0000-0000-000000000000" `
+  -Organization "contoso.onmicrosoft.com" `
+  -CertificateThumbprint "AABBCCDDEEFF00112233445566778899AABBCCDD" `
+  -OutputPath "C:\Reports\MDO" `
+  -SkipBrowserOpen -Quiet
+```
+
 ## Parameters
 
 | Parameter | Type | Description |
@@ -67,7 +89,10 @@ Example with common options:
 | `-SkipCsvExport` | Switch | Skips CSV export and only generates the HTML report and log file. |
 | `-SkipBrowserOpen` | Switch | Prevents the report from opening automatically after the run completes. |
 | `-AdminUPN` | String | Supplies a UPN hint for interactive sign-in, such as `admin@contoso.com`. |
-| `-InstallModuleIfMissing` | Switch | Automatically installs `ExchangeOnlineManagement` for the current user if it is missing. |
+| `-AppId` | String | Application (client) ID for unattended **app-only certificate authentication**. Must be used together with `-Organization` and `-CertificateThumbprint`. |
+| `-Organization` | String | Tenant organization for app-only auth, e.g. `contoso.onmicrosoft.com`. Required with `-AppId` / `-CertificateThumbprint`. |
+| `-CertificateThumbprint` | String | Thumbprint of the certificate (in the current user/machine store) used for app-only auth. Required with `-AppId` / `-Organization`. |
+| `-InstallModuleIfMissing` | Switch | Automatically installs `ExchangeOnlineManagement` (minimum v3.0.0) for the current user if it is missing. |
 | `-Version` | Switch | Displays version information and exits. |
 | `-Quiet` | Switch | Reduces console output and leaves errors plus final summary visible. |
 
@@ -109,10 +134,3 @@ The script produces:
 - **Execution log**: `MDOThreatPolicyAnalyzer-<timestamp>.log`
 
 By default, files are written to the `Output` folder beside the script. Use `-OutputPath` to choose another location.
-
-### CSV exports include
-
-- Raw policy and rule collections
-- `AssessmentResults.csv`
-- `AdditionalSecurityFindings.csv`
-- Supporting exports such as DKIM configs, accepted domains, transport rules, connectors, and quarantine policies

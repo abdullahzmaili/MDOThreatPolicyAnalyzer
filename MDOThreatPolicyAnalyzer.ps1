@@ -21,8 +21,19 @@
     Author         : Abdullah Zmaili
     Version        : 1.0
     Date Created   : 2026-April-30
-    Date Updated   : 2026-April-30
+    Date Updated   : 2026-July-26
     Prerequisite   : PowerShell 5.1 or later, Administrator privileges for some checks
+
+    SECURITY NOTES:
+    - This script uses the ExchangeOnlineManagement module (Connect-ExchangeOnline and
+      Connect-IPPSSession) with interactive modern authentication (delegated admin permissions).
+    - Access tokens are managed by the ExchangeOnlineManagement module and are not stored in plain text.
+    - For automated/service scenarios, consider using certificate-based app-only authentication
+      (or a Managed Identity where supported) instead of interactive sign-in.
+    - HTML output is encoded (via System.Net.WebUtility.HtmlEncode) to help prevent XSS
+      vulnerabilities in the generated reports.
+    - Review and audit exported CSV/HTML files before sharing - they may contain sensitive
+      tenant configuration data.
 
 .EXAMPLE
     .\MDOThreatPolicyAnalyzer.ps1
@@ -69,6 +80,9 @@ param(
     [switch]$SkipCsvExport,
     [switch]$SkipBrowserOpen,
     [string]$AdminUPN,
+    [string]$AppId,
+    [string]$Organization,
+    [string]$CertificateThumbprint,
     [switch]$InstallModuleIfMissing,
     [switch]$Version,
     [switch]$Quiet
@@ -79,6 +93,8 @@ $ErrorActionPreference = 'Stop'
 
 $script:ToolName = 'MDO Threat Policy Analyzer'
 $script:ToolVersion = '1.0.0'
+$script:MinExoModuleVersion = [Version]'3.0.0'
+$script:CachedReportTemplate = $null
 
 if ($Version) {
     Write-Host ('{0} v{1}' -f $script:ToolName, $script:ToolVersion)
@@ -93,7 +109,6 @@ $script:ExecutionIssues = New-Object 'System.Collections.Generic.List[object]'
 $script:ScriptRoot = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Path $MyInvocation.MyCommand.Path -Parent }
 $script:OutputRoot = if ($OutputPath) { $OutputPath } else { Join-Path -Path $script:ScriptRoot -ChildPath 'Output' }
 $script:LogPath = Join-Path -Path $script:OutputRoot -ChildPath ('MDOThreatPolicyAnalyzer-{0}.log' -f (Get-Date -Format 'yyyyMMdd-HHmmss'))
-$script:ReportTemplatePath = Join-Path -Path $script:ScriptRoot -ChildPath 'ReportTemplate.html'
 
 $propertyAliases = @{
     'DisableURLRewrite' = @('DisableURLRewrite', 'DisableUrlRewrite')
@@ -340,8 +355,19 @@ function Write-Banner {
 
 #region Ensure-OutputFolder
 function Ensure-OutputFolder {
+    if ($OutputPath) {
+        if ($OutputPath.IndexOfAny([System.IO.Path]::GetInvalidPathChars()) -ge 0) {
+            throw ('The provided -OutputPath contains invalid path characters: {0}' -f $OutputPath)
+        }
+    }
+
     if (-not (Test-Path -Path $script:OutputRoot)) {
-        $null = New-Item -Path $script:OutputRoot -ItemType Directory -Force
+        try {
+            $null = New-Item -Path $script:OutputRoot -ItemType Directory -Force -ErrorAction Stop
+        }
+        catch {
+            throw ('Unable to create output directory ''{0}'': {1}' -f $script:OutputRoot, $_.Exception.Message)
+        }
     }
 
     if (-not (Test-Path -Path $script:LogPath)) {
@@ -365,10 +391,14 @@ function Ensure-ExchangeOnlineModule {
     Write-Log -Message 'Checking ExchangeOnlineManagement module.' -Color Yellow
     $installedModule = Get-Module -ListAvailable -Name ExchangeOnlineManagement | Sort-Object Version -Descending | Select-Object -First 1
 
-    if ($installedModule) {
-        Import-Module ExchangeOnlineManagement -ErrorAction Stop
+    if ($installedModule -and $installedModule.Version -ge $script:MinExoModuleVersion) {
+        Import-Module ExchangeOnlineManagement -MinimumVersion $script:MinExoModuleVersion -ErrorAction Stop
         Write-Log -Message ('Loaded ExchangeOnlineManagement {0}.' -f $installedModule.Version) -Level SUCCESS -Color Green
         return
+    }
+
+    if ($installedModule) {
+        Write-Log -Message ('Installed ExchangeOnlineManagement {0} is older than the required minimum {1}; an update will be attempted.' -f $installedModule.Version, $script:MinExoModuleVersion) -Level WARN -Color DarkYellow
     }
 
     if (-not $InstallModuleIfMissing) {
@@ -390,7 +420,7 @@ function Ensure-ExchangeOnlineModule {
         Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force -Scope CurrentUser -ErrorAction Stop
     }
 
-    Install-Module -Name ExchangeOnlineManagement -Scope CurrentUser -AllowClobber -Force -ErrorAction Stop
+    Install-Module -Name ExchangeOnlineManagement -MinimumVersion $script:MinExoModuleVersion -Scope CurrentUser -AllowClobber -Force -ErrorAction Stop
 
     # Refresh module path so Import-Module can find the newly installed module
     $userModulePath = Join-Path ([Environment]::GetFolderPath('MyDocuments')) 'PowerShell\Modules'
@@ -401,15 +431,26 @@ function Ensure-ExchangeOnlineModule {
         }
     }
 
-    Import-Module ExchangeOnlineManagement -ErrorAction Stop
-    Write-Log -Message 'ExchangeOnlineManagement installed successfully.' -Level SUCCESS -Color Green
+    Import-Module ExchangeOnlineManagement -MinimumVersion $script:MinExoModuleVersion -ErrorAction Stop
+    $loaded = Get-Module -Name ExchangeOnlineManagement | Sort-Object Version -Descending | Select-Object -First 1
+    Write-Log -Message ('ExchangeOnlineManagement {0} installed successfully.' -f ($loaded.Version)) -Level SUCCESS -Color Green
 }
 #endregion
 
 #region Get-AuthenticationContext
 function Get-AuthenticationContext {
+    $usingAppAuth = [bool]($AppId -and $Organization -and $CertificateThumbprint)
+
+    if (-not $usingAppAuth -and ($AppId -or $Organization -or $CertificateThumbprint)) {
+        throw 'App-only authentication requires all of -AppId, -Organization and -CertificateThumbprint.'
+    }
+
     $context = [ordered]@{
-        UserPrincipalName = if ($AdminUPN) { $AdminUPN } else { $null }
+        UserPrincipalName     = if ($AdminUPN) { $AdminUPN } else { $null }
+        AppId                 = if ($AppId) { $AppId } else { $null }
+        Organization          = if ($Organization) { $Organization } else { $null }
+        CertificateThumbprint = if ($CertificateThumbprint) { $CertificateThumbprint } else { $null }
+        UseAppOnly            = $usingAppAuth
     }
     return [pscustomobject]$context
 }
@@ -422,23 +463,48 @@ function Connect-MdoServices {
         [pscustomobject]$AuthContext
     )
 
-    Write-Log -Message 'Connecting to Exchange Online.' -Color Yellow
-    if ($AuthContext.UserPrincipalName) {
-        Connect-ExchangeOnline -UserPrincipalName $AuthContext.UserPrincipalName -ShowBanner:$false -ErrorAction Stop | Out-Null
+    # Newer ExchangeOnlineManagement versions (3.7.0+) default to WAM (Web Account Manager)
+    # broker authentication, which requires a parent window handle. In hosts where a handle
+    # is unavailable (e.g. some console/remoting sessions) this fails with:
+    #   "A window handle must be configured. See https://aka.ms/msal-net-wam#parent-window-handles"
+    # Disabling WAM falls back to the standard interactive browser flow. The switch only exists
+    # on module versions that support WAM, so we add it conditionally.
+    $exoConnectParams = @{ ShowBanner = $false; ErrorAction = 'Stop' }
+    $ippsConnectParams = @{ ErrorAction = 'Stop' }
+
+    if ($AuthContext.UseAppOnly) {
+        # Non-interactive app-only certificate authentication. This also enables
+        # unattended/scheduled execution and per-runspace connections.
+        foreach ($p in @($exoConnectParams, $ippsConnectParams)) {
+            $p['AppId'] = $AuthContext.AppId
+            $p['Organization'] = $AuthContext.Organization
+            $p['CertificateThumbprint'] = $AuthContext.CertificateThumbprint
+        }
     }
     else {
-        Connect-ExchangeOnline -ShowBanner:$false -ErrorAction Stop | Out-Null
+        if ($AuthContext.UserPrincipalName) {
+            $exoConnectParams['UserPrincipalName'] = $AuthContext.UserPrincipalName
+            $ippsConnectParams['UserPrincipalName'] = $AuthContext.UserPrincipalName
+        }
     }
+
+    $connectExoCommand = Get-Command -Name Connect-ExchangeOnline -ErrorAction SilentlyContinue
+    if ($connectExoCommand -and $connectExoCommand.Parameters.ContainsKey('DisableWAM')) {
+        $exoConnectParams['DisableWAM'] = $true
+    }
+
+    $connectIppsCommand = Get-Command -Name Connect-IPPSSession -ErrorAction SilentlyContinue
+    if ($connectIppsCommand -and $connectIppsCommand.Parameters.ContainsKey('DisableWAM')) {
+        $ippsConnectParams['DisableWAM'] = $true
+    }
+
+    Write-Log -Message 'Connecting to Exchange Online.' -Color Yellow
+    Connect-ExchangeOnline @exoConnectParams | Out-Null
 
     Write-Log -Message 'Connected to Exchange Online.' -Level SUCCESS -Color Green
     Write-Log -Message 'Connecting to Security & Compliance PowerShell.' -Color Yellow
 
-    if ($AuthContext.UserPrincipalName) {
-        Connect-IPPSSession -UserPrincipalName $AuthContext.UserPrincipalName -ErrorAction Stop | Out-Null
-    }
-    else {
-        Connect-IPPSSession -ErrorAction Stop | Out-Null
-    }
+    Connect-IPPSSession @ippsConnectParams | Out-Null
 
     Write-Log -Message 'Connected to Security & Compliance PowerShell.' -Level SUCCESS -Color Green
 }
@@ -898,6 +964,24 @@ function Get-PolicyPriority {
 }
 #endregion
 
+#region Protect-CsvValue
+function Protect-CsvValue {
+    # Mitigates spreadsheet formula (CSV) injection (CWE-1236). Tenant-controlled
+    # string values that begin with a formula trigger character are prefixed with a
+    # single quote so Excel/Sheets treat them as inert text. Non-string values
+    # (numbers, booleans, dates) are returned unchanged to avoid corrupting them.
+    param([object]$Value)
+
+    if ($Value -is [string] -and $Value.Length -gt 0) {
+        if ([regex]::IsMatch($Value, "^[=+\-@\t\r\n]")) {
+            return "'" + $Value
+        }
+    }
+
+    return $Value
+}
+#endregion
+
 #region Export-ObjectsToCsv
 function Export-ObjectsToCsv {
     param(
@@ -923,7 +1007,16 @@ function Export-ObjectsToCsv {
         Encoding = Get-Utf8EncodingName
     }
 
-    $InputObject | Select-Object * | Export-Csv @exportParams
+    $sanitized = foreach ($item in $InputObject) {
+        if ($null -eq $item) { continue }
+        $ordered = [ordered]@{}
+        foreach ($prop in $item.PSObject.Properties) {
+            $ordered[$prop.Name] = Protect-CsvValue -Value $prop.Value
+        }
+        [pscustomobject]$ordered
+    }
+
+    $sanitized | Export-Csv @exportParams
     Write-Log -Message ('Exported {0}.' -f $csvPath) -Level SUCCESS -Color Green
 }
 #endregion
@@ -1188,7 +1281,7 @@ function Get-QuarantinePolicyReferences {
         [object]$PolicyObject
     )
 
-    $references = @()
+    $references = New-Object 'System.Collections.Generic.List[object]'
     if ($null -eq $PolicyObject) {
         return $references
     }
@@ -1207,10 +1300,10 @@ function Get-QuarantinePolicyReferences {
             continue
         }
 
-        $references += [pscustomobject]@{
+        [void]$references.Add([pscustomobject]@{
             PropertyName = $property.Name
             ReferencedPolicy = $valueText
-        }
+        })
     }
 
     return $references
@@ -1702,7 +1795,7 @@ function Invoke-ConnectorSecurityChecks {
 }
 #endregion
 
-#region Phase 5 — Impersonation Protection
+#region Phase 5 â€” Impersonation Protection
 function Invoke-ImpersonationProtectionChecks {
     param(
         [System.Collections.Generic.List[object]]$Findings,
@@ -1786,7 +1879,7 @@ function Invoke-ImpersonationProtectionChecks {
 }
 #endregion
 
-#region Phase 5 — Allow/Block List Audit
+#region Phase 5 â€” Allow/Block List Audit
 function Invoke-AllowBlockListAudit {
     param(
         [System.Collections.Generic.List[object]]$Findings
@@ -1831,7 +1924,7 @@ function Invoke-AllowBlockListAudit {
 }
 #endregion
 
-#region Phase 5 — Advanced Delivery Policy Check
+#region Phase 5 â€” Advanced Delivery Policy Check
 function Invoke-AdvancedDeliveryChecks {
     param(
         [System.Collections.Generic.List[object]]$Findings
@@ -1894,7 +1987,7 @@ function Invoke-AdvancedDeliveryChecks {
 }
 #endregion
 
-#region Phase 5 — Audit Log Verification
+#region Phase 5 â€” Audit Log Verification
 function Invoke-AuditLogChecks {
     param(
         [System.Collections.Generic.List[object]]$Findings
@@ -1926,7 +2019,7 @@ function Invoke-AuditLogChecks {
 }
 #endregion
 
-#region Phase 5 — ATP Coverage Gap Detection
+#region Phase 5 â€” ATP Coverage Gap Detection
 function Invoke-AtpCoverageGapChecks {
     param(
         [System.Collections.Generic.List[object]]$Findings,
@@ -1985,7 +2078,7 @@ function Invoke-AtpCoverageGapChecks {
 }
 #endregion
 
-#region Phase 5 — Zero-Hour Auto Purge (ZAP) Effectiveness
+#region Phase 5 â€” Zero-Hour Auto Purge (ZAP) Effectiveness
 function Invoke-ZapEffectivenessChecks {
     param(
         [System.Collections.Generic.List[object]]$Findings,
@@ -2043,7 +2136,7 @@ function Invoke-ZapEffectivenessChecks {
 }
 #endregion
 
-#region Phase 5 — Outbound Spam Notification Validation
+#region Phase 5 â€” Outbound Spam Notification Validation
 function Invoke-OutboundSpamNotificationChecks {
     param(
         [System.Collections.Generic.List[object]]$Findings,
@@ -2125,7 +2218,7 @@ function Invoke-AdditionalSecurityChecks {
     Invoke-TransportRuleBypassChecks -Findings $Findings -AllData $AllData
     Invoke-ConnectorSecurityChecks -Findings $Findings -AllData $AllData
 
-    # Phase 5 checks — Extra Protection Layers
+    # Phase 5 checks â€” Extra Protection Layers
     Invoke-ImpersonationProtectionChecks -Findings $Findings -AllData $AllData
     Invoke-AllowBlockListAudit -Findings $Findings
     Invoke-AdvancedDeliveryChecks -Findings $Findings
@@ -2140,6 +2233,25 @@ function Invoke-AdditionalSecurityChecks {
 function HtmlEncode {
     param([string]$Text)
     return [System.Net.WebUtility]::HtmlEncode([string]$Text)
+}
+#endregion
+
+#region ConvertTo-SafeUrl
+function ConvertTo-SafeUrl {
+    # Returns an HTML-attribute-safe URL. Only http/https schemes are allowed;
+    # anything else (e.g. javascript:) is dropped to '#' to prevent stored XSS via
+    # href attributes. The result is HTML-encoded for safe attribute interpolation.
+    param([string]$Url)
+
+    if ([string]::IsNullOrWhiteSpace($Url)) {
+        return '#'
+    }
+
+    if ($Url -notmatch '^(https?):\/\/') {
+        return '#'
+    }
+
+    return [System.Net.WebUtility]::HtmlEncode($Url)
 }
 #endregion
 
@@ -2230,17 +2342,17 @@ function New-NavItemsHtml {
         return ''
     }
 
-    $navItems = @()
-    $navItems += "<a class=`"sidebar-item active`" href=`"#section-summary`" onclick=`"scrollToSection('section-summary', this); return false;`">Executive Summary</a>"
-    $navItems += "<a class=`"sidebar-item`" href=`"#section-categories`" onclick=`"scrollToSection('section-categories', this); return false;`">Category Scorecards</a>"
+    $navItems = New-Object 'System.Collections.Generic.List[string]'
+    [void]$navItems.Add("<a class=`"sidebar-item active`" href=`"#section-summary`" onclick=`"scrollToSection('section-summary', this); return false;`">Executive Summary</a>")
+    [void]$navItems.Add("<a class=`"sidebar-item`" href=`"#section-categories`" onclick=`"scrollToSection('section-categories', this); return false;`">Category Scorecards</a>")
     $categories = $Results | Group-Object -Property Category | Sort-Object @{ Expression = { if ($_.Name -eq 'Global ATP Settings') { 1 } else { 0 } } }, Name
     foreach ($group in $categories) {
         $categorySlug = ConvertTo-Slug -Text $group.Name
         $sectionId = "section-$categorySlug"
         $categoryName = HtmlEncode -Text $group.Name
-        $navItems += "<a class=`"sidebar-item`" href=`"#$sectionId`" onclick=`"scrollToSection('$sectionId', this); return false;`">$categoryName</a>"
+        [void]$navItems.Add("<a class=`"sidebar-item`" href=`"#$sectionId`" onclick=`"scrollToSection('$sectionId', this); return false;`">$categoryName</a>")
     }
-    $navItems += "<a class=`"sidebar-item`" href=`"#section-additional-security-checks`" onclick=`"scrollToSection('section-additional-security-checks', this); return false;`">Additional Security Checks</a>"
+    [void]$navItems.Add("<a class=`"sidebar-item`" href=`"#section-additional-security-checks`" onclick=`"scrollToSection('section-additional-security-checks', this); return false;`">Additional Security Checks</a>")
 
     return ($navItems -join [Environment]::NewLine)
 }
@@ -2407,7 +2519,7 @@ function New-DetailSectionsHtml {
     <td>$(New-StatusBadgeHtml -Status $item.StandardStatus)</td>
     <td>$(HtmlEncode -Text $item.RecommendedStrictValue)</td>
     <td>$(New-StatusBadgeHtml -Status $item.StrictStatus)</td>
-    <td><a href="$($item.ReferenceUrl)" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+    <td><a href="$(ConvertTo-SafeUrl -Url $item.ReferenceUrl)" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
 </tr>
 "@
             }
@@ -2491,7 +2603,8 @@ function Get-TenantDisplayName {
 
 #region Get-DefaultReportTemplate
 function Get-DefaultReportTemplate {
-    return @'
+    if ($script:CachedReportTemplate) { return $script:CachedReportTemplate }
+    $script:CachedReportTemplate = @'
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -2834,6 +2947,41 @@ function Get-DefaultReportTemplate {
             box-shadow: var(--shadow);
             backdrop-filter: blur(10px);
             overflow: hidden;
+        }
+
+        .disclaimer {
+            background: #fff8ed;
+            border: 1px solid #f6d9a8;
+            border-left: 5px solid var(--warning);
+            border-radius: 14px;
+            padding: 18px 22px;
+            margin-bottom: 22px;
+            color: #5c4a24;
+            box-shadow: var(--shadow);
+        }
+
+        .disclaimer .disclaimer-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+            font-size: 15px;
+            color: #8a5a00;
+            margin: 0 0 8px;
+        }
+
+        .disclaimer p {
+            margin: 0 0 10px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .disclaimer p:last-child {
+            margin-bottom: 0;
+        }
+
+        .disclaimer a {
+            font-weight: 600;
         }
 
         .content h2 {
@@ -3870,6 +4018,12 @@ function Get-DefaultReportTemplate {
 
     <main class="page">
         <section class="content">
+            <div class="disclaimer" role="note">
+                <p class="disclaimer-title">&#9888; Important &mdash; Please read before acting on this report</p>
+                <p>This report evaluates the tenant against Microsoft's recommended security baselines and presents recommendations at two levels defined by Microsoft: <strong>Standard</strong> and <strong>Strict</strong>. While these recommendations reflect Microsoft best practices, they may not align with every organization's policies, risk tolerance, or operational requirements.</p>
+                <p>Before changing any settings based on these recommendations, review them with your security team and validate the impact in a test environment first. Do not apply a recommendation if it conflicts with your organization's policies or if your team follows a different, well-founded best practice.</p>
+                <p>You can automatically apply the Standard or Strict configuration to users using preset security policies. For details, see <a href="https://learn.microsoft.com/defender-office-365/preset-security-policies" target="_blank" rel="noopener noreferrer">Preset security policies in Microsoft Defender for Office 365</a>.</p>
+            </div>
             <section class="panel hero" id="section-summary">
                 <h2>Executive Summary</h2>
                 <p>This assessment compares the tenant's Microsoft Defender for Office 365 configuration against Microsoft's recommended cloud security baseline. Use the scorecard below to understand coverage, identify high-impact configuration gaps, and prioritize remediation activity.</p>
@@ -3932,7 +4086,7 @@ function Get-DefaultReportTemplate {
             </section>
 
             <div style="text-align: right; margin-bottom: 16px;">
-                <button type="button" class="export-btn" onclick="exportAllToCsv()">&#128196; Export All to Excel</button>
+                <button type="button" class="export-btn" onclick="exportAllToExcel()">&#128196; Export All to Excel</button>
             </div>
 
             <section class="panel section-card" id="section-categories">
@@ -4027,50 +4181,105 @@ function Get-DefaultReportTemplate {
             link.click();
             document.body.removeChild(link);
         }
-        function exportAllToCsv() {
-            var sections = document.querySelectorAll('.detail-section');
-            var csvRows = [];
-            var headerAdded = false;
-            for (var s = 0; s < sections.length; s++) {
-                var tables = sections[s].querySelectorAll('table');
-                var sectionTitle = sections[s].querySelector('h2, h3');
-                var sectionName = sectionTitle ? sectionTitle.innerText : 'Unknown';
+        function exportAllToExcel() {
+            function cellText(el) {
+                return (el && el.textContent ? el.textContent : '').replace(/\s+/g, ' ').trim();
+            }
+            function xmlEsc(s) {
+                return String(s == null ? '' : s)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;');
+            }
+            function textCell(v) {
+                var s = String(v == null ? '' : v);
+                if (s.length && '=+-@\t\r'.indexOf(s.charAt(0)) !== -1) { s = "'" + s; }
+                return '<Cell><Data ss:Type="String">' + xmlEsc(s) + '</Data></Cell>';
+            }
+            function headerCell(v) {
+                return '<Cell ss:StyleID="hdr"><Data ss:Type="String">' + xmlEsc(v) + '</Data></Cell>';
+            }
+            function linkCell(url, label) {
+                url = (url || '').trim();
+                if (!url) { return textCell(label || ''); }
+                return '<Cell ss:StyleID="lnk" ss:HRef="' + xmlEsc(url) + '"><Data ss:Type="String">' + xmlEsc(label || url) + '</Data></Cell>';
+            }
+            function getRef(cell) {
+                if (!cell) { return { url: '', label: '' }; }
+                var a = cell.querySelector('a');
+                if (a) { return { url: a.getAttribute('href') || '', label: cellText(a) || 'Reference' }; }
+                return { url: '', label: cellText(cell) };
+            }
+
+            // Sheet 1: Detailed Findings (7 policy columns + Category + Policy Name)
+            var detailRows = ['<Row>' +
+                headerCell('Category') + headerCell('Policy Name') + headerCell('Setting Name') +
+                headerCell('Current Value') + headerCell('Recommended Standard Value') + headerCell('Standard Status') +
+                headerCell('Recommended Strict Value') + headerCell('Strict Status') + headerCell('Reference') + '</Row>'];
+            var detailSections = document.querySelectorAll('.detail-section');
+            for (var s = 0; s < detailSections.length; s++) {
+                if (detailSections[s].id === 'section-additional-security-checks') { continue; }
+                var sTitle = detailSections[s].querySelector('h2, h3');
+                var sectionName = sTitle ? cellText(sTitle) : 'Unknown';
+                var tables = detailSections[s].querySelectorAll('table');
                 for (var t = 0; t < tables.length; t++) {
                     var policyBlock = tables[t].closest('.policy-collapsible');
-                    var policyName = policyBlock ? (policyBlock.querySelector('.policy-title') || {}).innerText || '' : '';
-                    var headers = tables[t].querySelectorAll('th');
-                    var skipLast = (headers.length > 0 && headers[headers.length - 1].innerText.trim() === 'Reference');
-                    var rows = tables[t].querySelectorAll('tr');
+                    var policyName = policyBlock ? cellText(policyBlock.querySelector('.policy-title')) : '';
+                    var rows = tables[t].querySelectorAll('tbody tr');
                     for (var i = 0; i < rows.length; i++) {
-                        var cells = rows[i].querySelectorAll('th, td');
-                        if (cells.length === 0) continue;
-                        var colCount = skipLast ? cells.length - 1 : cells.length;
-                        if (rows[i].querySelectorAll('th').length > 0) {
-                            if (!headerAdded) {
-                                var headerData = ['"Category"', '"Policy Name"'];
-                                for (var j = 0; j < colCount; j++) {
-                                    headerData.push('"' + cells[j].innerText.replace(/"/g, '""').trim() + '"');
-                                }
-                                csvRows.push(headerData.join(','));
-                                headerAdded = true;
-                            }
-                            continue;
-                        }
-                        var rowData = ['"' + sectionName.replace(/"/g, '""') + '"', '"' + policyName.replace(/"/g, '""') + '"'];
-                        for (var j = 0; j < colCount; j++) {
-                            var text = cells[j].innerText.replace(/"/g, '""').replace(/\n/g, ' ').trim();
-                            rowData.push('"' + text + '"');
-                        }
-                        csvRows.push(rowData.join(','));
+                        var cells = rows[i].querySelectorAll('td');
+                        if (cells.length === 0) { continue; }
+                        var ref = getRef(cells[cells.length - 1]);
+                        var rowXml = '<Row>' + textCell(sectionName) + textCell(policyName);
+                        for (var j = 0; j < cells.length - 1; j++) { rowXml += textCell(cellText(cells[j])); }
+                        rowXml += linkCell(ref.url, ref.label || 'Microsoft Learn') + '</Row>';
+                        detailRows.push(rowXml);
                     }
                 }
             }
-            if (csvRows.length === 0) return;
-            var csvContent = '\uFEFF' + csvRows.join('\n');
-            var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+
+            // Sheet 2: Additional Security Checks (dedicated columns + clickable Reference)
+            var addlRows = ['<Row>' +
+                headerCell('Category') + headerCell('Check Name') + headerCell('Status') +
+                headerCell('Details') + headerCell('Recommendation') + headerCell('Reference') + '</Row>'];
+            var addlSection = document.getElementById('section-additional-security-checks');
+            if (addlSection) {
+                var addlTables = addlSection.querySelectorAll('table');
+                for (var at = 0; at < addlTables.length; at++) {
+                    var arows = addlTables[at].querySelectorAll('tbody tr');
+                    for (var k = 0; k < arows.length; k++) {
+                        var acells = arows[k].querySelectorAll('td');
+                        if (acells.length === 0) { continue; }
+                        var aref = getRef(acells[acells.length - 1]);
+                        var arowXml = '<Row>';
+                        for (var m = 0; m < acells.length - 1; m++) { arowXml += textCell(cellText(acells[m])); }
+                        arowXml += linkCell(aref.url, aref.label || 'Microsoft Docs') + '</Row>';
+                        addlRows.push(arowXml);
+                    }
+                }
+            }
+
+            var workbook =
+                '<?xml version="1.0"?>\r\n' +
+                '<?mso-application progid="Excel.Sheet"?>\r\n' +
+                '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"' +
+                ' xmlns:o="urn:schemas-microsoft-com:office:office"' +
+                ' xmlns:x="urn:schemas-microsoft-com:office:excel"' +
+                ' xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"' +
+                ' xmlns:html="http://www.w3.org/TR/REC-html40">' +
+                '<Styles>' +
+                '<Style ss:ID="hdr"><Font ss:Bold="1"/><Interior ss:Color="#DDEBF7" ss:Pattern="Solid"/></Style>' +
+                '<Style ss:ID="lnk"><Font ss:Color="#0563C1" ss:Underline="Single"/></Style>' +
+                '</Styles>' +
+                '<Worksheet ss:Name="Detailed Findings"><Table>' + detailRows.join('') + '</Table></Worksheet>' +
+                '<Worksheet ss:Name="Additional Security Checks"><Table>' + addlRows.join('') + '</Table></Worksheet>' +
+                '</Workbook>';
+
+            var blob = new Blob([workbook], { type: 'application/vnd.ms-excel;charset=utf-8;' });
             var link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
-            link.download = 'MDO_Full_Report.csv';
+            link.download = 'MDO_Full_Report.xls';
             link.style.display = 'none';
             document.body.appendChild(link);
             link.click();
@@ -4136,6 +4345,7 @@ function Get-DefaultReportTemplate {
 </body>
 </html>
 '@
+    return $script:CachedReportTemplate
 }
 #endregion
 
@@ -4195,14 +4405,10 @@ function New-AssessmentReport {
         New-CategoryCardHtml -Category $group.Name -StandardCompliant $groupStandardCompliant -StandardNonCompliant $groupStandardNonCompliant -StrictCompliant $groupStrictCompliant -StrictNonCompliant $groupStrictNonCompliant
     }
 
-    $template = if (Test-Path -Path $script:ReportTemplatePath) {
-        Write-Log -Message ('Using external report template {0}.' -f $script:ReportTemplatePath) -Color Cyan
-        Get-Content -Path $script:ReportTemplatePath -Raw
-    }
-    else {
-        Write-Log -Message 'Using built-in report template.' -Color Cyan
-        Get-DefaultReportTemplate
-    }
+    # The report template is embedded in this script (see Get-DefaultReportTemplate),
+    # so no external ReportTemplate.html file is required. This keeps the script standalone.
+    Write-Log -Message 'Using built-in report template.' -Color Cyan
+    $template = Get-DefaultReportTemplate
 
     $replacements = @{
         REPORT_TITLE = $script:ToolName
@@ -4339,7 +4545,7 @@ try {
     Set-Content -Path $reportPath -Value $reportHtml -Encoding (Get-Utf8EncodingName)
     Write-Log -Message ('Report created: {0}' -f $reportPath) -Level SUCCESS -Color Green
 
-    if (-not $SkipBrowserOpen) {
+    if (-not $SkipBrowserOpen -and $script:IsInteractive) {
         try {
             Start-Process -FilePath $reportPath | Out-Null
             Write-Log -Message 'Opened report in the default browser.' -Level SUCCESS -Color Green
@@ -4351,13 +4557,25 @@ try {
         }
     }
 
-    $compliant = @($results | Where-Object { $_.StandardStatus -eq 'Matched' }).Count
-    $nonCompliant = @($results | Where-Object { $_.StandardStatus -eq 'NotMatched' }).Count
-    $strictCompliant = @($results | Where-Object { $_.StrictStatus -eq 'Matched' }).Count
-    $strictNonCompliant = @($results | Where-Object { $_.StrictStatus -eq 'NotMatched' }).Count
-    $additionalPass = @($additionalFindings | Where-Object { $_.Status -eq 'Pass' }).Count
-    $additionalWarnings = @($additionalFindings | Where-Object { $_.Status -eq 'Warning' }).Count
-    $additionalCritical = @($additionalFindings | Where-Object { $_.Status -eq 'Critical' }).Count
+    $compliant = 0; $nonCompliant = 0; $strictCompliant = 0; $strictNonCompliant = 0
+    foreach ($r in $results) {
+        switch ($r.StandardStatus) {
+            'Matched'    { $compliant++ }
+            'NotMatched' { $nonCompliant++ }
+        }
+        switch ($r.StrictStatus) {
+            'Matched'    { $strictCompliant++ }
+            'NotMatched' { $strictNonCompliant++ }
+        }
+    }
+    $additionalPass = 0; $additionalWarnings = 0; $additionalCritical = 0
+    foreach ($f in $additionalFindings) {
+        switch ($f.Status) {
+            'Pass'     { $additionalPass++ }
+            'Warning'  { $additionalWarnings++ }
+            'Critical' { $additionalCritical++ }
+        }
+    }
 
     Write-Host ''
     Write-Host 'Assessment Summary' -ForegroundColor Cyan
@@ -4382,8 +4600,8 @@ finally {
 # SIG # Begin signature block
 # MIIF0AYJKoZIhvcNAQcCoIIFwTCCBb0CAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUl+QQKCgg+ExuWYLwE9vQQTxE
-# Ba6gggNKMIIDRjCCAi6gAwIBAgIQQ6HqgjDvOohK4mxwPhpDZDANBgkqhkiG9w0B
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUTQA7oFunWG2UCoAhcmfg4m+1
+# 6G+gggNKMIIDRjCCAi6gAwIBAgIQQ6HqgjDvOohK4mxwPhpDZDANBgkqhkiG9w0B
 # AQsFADA7MTkwNwYDVQQDDDBBYmR1bGxhaFptYWlsaUNvZGVTaWduaW5nTURPVGhy
 # ZWF0UG9saWN5QW5hbHl6ZXIwHhcNMjYwNTAzMTAwNjE1WhcNMjcwNTAzMTAyNjE1
 # WjA7MTkwNwYDVQQDDDBBYmR1bGxhaFptYWlsaUNvZGVTaWduaW5nTURPVGhyZWF0
@@ -4404,12 +4622,12 @@ finally {
 # OTA3BgNVBAMMMEFiZHVsbGFoWm1haWxpQ29kZVNpZ25pbmdNRE9UaHJlYXRQb2xp
 # Y3lBbmFseXplcgIQQ6HqgjDvOohK4mxwPhpDZDAJBgUrDgMCGgUAoHgwGAYKKwYB
 # BAGCNwIBDDEKMAigAoAAoQKAADAZBgkqhkiG9w0BCQMxDAYKKwYBBAGCNwIBBDAc
-# BgorBgEEAYI3AgELMQ4wDAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQUtwgQ
-# R9NAfSw7tEEqOD//dmC+1kYwDQYJKoZIhvcNAQEBBQAEggEAnSPDiz4iAOtPMYlc
-# 4/FFy8WtMlKRQQvKwENc8VceLgJWoRJxCp7t39McMFcwJmQdOEwjBrcsIs44gqOL
-# c3FrimmSTC0unh0bURnz/2NjPpSY6BPb+oJDPscYkZyuCmw0SYoy9twVT2/DmGMy
-# sP9xMvhLXYDzQZT+z8UvIVK8PPuVrBybBPLJx6Z9R8qcNzxhEB+rY5Yaxq+KAd+V
-# +Kk1iK7Fal1p69GcOXCpk03F385zA2G+Xbif3F+BDbDPIU877CmpPGE27sDAEipX
-# S5B5CXA59pZE0Ujr0IbqaYSnIDLAhbHlA4DtfNinbly5F5/83CgZDCfMyWDUmPOW
-# P4KuaA==
+# BgorBgEEAYI3AgELMQ4wDAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQUpCBn
+# yN1MUU3Bvhpi4u9v0GNDGCcwDQYJKoZIhvcNAQEBBQAEggEAEMAfplEWSP1iiNj0
+# AyKru8u2YbgzIIJ/sKtarxT0tWTz2z6m+qsM4RGQlGSGzxvqEbcJ2pEM1qhL1r85
+# EYBn2mUdspE62tX7p+go/pSYWSJ/bRisbVoLzOiHJEXHNR8VbOlkfA+zkTnZ3hrj
+# R9GO4Jn6pE+1CoIH9CqI7hwuXRm2IpfBNSgDXp8IqEv9ar2uejtd2dwxOcED7lY1
+# 75nIW/UVCmPkzLgkTqbv39I0fmINHvXvHZB4SGU9VsEP2Fn6s0UWG95/BguuKELy
+# iagyunA251l/pUlYB1390kkrBRBVvaRPhpj2bsawcQEdjY8psU58u/kqGSD1fU09
+# +06cAA==
 # SIG # End signature block
