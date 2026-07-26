@@ -1,0 +1,3497 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Contoso - MDO Assessment Report</title>
+    <style>
+        :root {
+            --ms-blue: #0f6cbd;
+            --ms-blue-dark: #0b3b69;
+            --header-dark: #111827;
+            --surface: #ffffff;
+            --surface-alt: #f5f7fb;
+            --surface-muted: #eef2f7;
+            --border: #dbe2ea;
+            --text: #1f2937;
+            --text-muted: #5f6a7d;
+            --success: #107c10;
+            --danger: #d13438;
+            --warning: #ff8c00;
+            --shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
+            --radius: 18px;
+            --ring-score: 52;
+            --sidebar-bg: #ffffff;
+            --sidebar-border: #e7edf3;
+            --sidebar-border-soft: #eef2f6;
+            --sidebar-text: #475467;
+            --sidebar-text-strong: #111827;
+            --sidebar-muted: #98a2b3;
+            --sidebar-hover: #f1f5f9;
+            --sidebar-active-bg: #eef6ff;
+            --sidebar-indicator: var(--ms-blue);
+            --sidebar-shadow: 0 18px 40px rgba(15, 23, 42, 0.06);
+        }
+
+        * { box-sizing: border-box; }
+
+        html {
+            scroll-behavior: smooth;
+            background: #e8edf4;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Inter", "Segoe UI Variable", "Segoe UI", Arial, Helvetica, sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(circle at top right, rgba(15, 108, 189, 0.12), transparent 26%),
+                linear-gradient(180deg, #eef3f9 0%, #f7f9fc 240px, #eef2f7 100%);
+        }
+
+        a {
+            color: var(--ms-blue);
+            text-decoration: none;
+        }
+
+        a:hover,
+        a:focus {
+            text-decoration: underline;
+        }
+
+        code {
+            padding: 2px 6px;
+            border-radius: 6px;
+            background: rgba(15, 108, 189, 0.08);
+            color: var(--ms-blue-dark);
+            font-family: Consolas, "Courier New", monospace;
+            font-size: 0.95em;
+        }
+
+        .muted {
+            color: var(--text-muted);
+        }
+
+        .topbar {
+            background: linear-gradient(135deg, #0b1220 0%, #15233b 52%, #0f6cbd 140%);
+            color: #ffffff;
+            padding: 22px 0;
+            box-shadow: 0 12px 28px rgba(11, 18, 32, 0.28);
+        }
+
+        .topbar-inner {
+            width: min(1440px, calc(100% - 40px));
+            margin: 0 auto;
+        }
+
+        .brand-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .brand-mark {
+            display: grid;
+            grid-template-columns: repeat(2, 14px);
+            gap: 4px;
+            padding: 6px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .brand-mark span {
+            display: block;
+            width: 14px;
+            height: 14px;
+            border-radius: 3px;
+        }
+
+        .brand-mark span:nth-child(1) { background: #f25022; }
+        .brand-mark span:nth-child(2) { background: #7fba00; }
+        .brand-mark span:nth-child(3) { background: #00a4ef; }
+        .brand-mark span:nth-child(4) { background: #ffb900; }
+
+        .eyebrow {
+            margin: 0 0 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-size: 12px;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.72);
+        }
+
+        .topbar h1 {
+            margin: 0;
+            font-size: clamp(28px, 4vw, 42px);
+            font-weight: 700;
+        }
+
+        .topbar p {
+            margin: 6px 0 0;
+            color: rgba(255, 255, 255, 0.82);
+            font-size: 15px;
+        }
+
+        .meta-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.08);
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        .page {
+            margin-left: 296px;
+            padding: 28px 20px 36px;
+        }
+
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 272px;
+            height: 100vh;
+            background: var(--sidebar-bg);
+            z-index: 1000;
+            border-right: 1px solid var(--sidebar-border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transition: transform 0.3s ease;
+            box-shadow: var(--sidebar-shadow);
+        }
+
+        .sidebar .panel {
+            padding: 0;
+            background: transparent;
+            border: none;
+            border-radius: 0;
+            box-shadow: none;
+            backdrop-filter: none;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        .sidebar-shell {
+            min-height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 20px 20px 16px;
+            border-bottom: 1px solid var(--sidebar-border-soft);
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: inherit;
+            text-decoration: none;
+            min-width: 0;
+        }
+
+        .sidebar-logo:hover,
+        .sidebar-logo:focus {
+            text-decoration: none;
+        }
+
+        .sidebar-logo .brand-mark {
+            grid-template-columns: repeat(2, 10px);
+            gap: 3px;
+            padding: 5px;
+            border-radius: 8px;
+            background: #f8fafc;
+            border: 1px solid var(--sidebar-border-soft);
+            flex-shrink: 0;
+        }
+
+        .sidebar-logo .brand-mark span {
+            width: 10px;
+            height: 10px;
+            border-radius: 2px;
+        }
+
+        .sidebar-brand-copy {
+            min-width: 0;
+        }
+
+        .sidebar-brand-kicker {
+            margin: 0 0 2px;
+            font-size: 11px;
+            line-height: 1.2;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: var(--sidebar-muted);
+        }
+
+        .sidebar-brand-name {
+            margin: 0;
+            font-size: 17px;
+            line-height: 1.2;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: var(--sidebar-text-strong);
+        }
+
+        .sidebar-brand-subtitle {
+            margin: 3px 0 0;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .sidebar-body {
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            padding: 14px 12px 18px;
+        }
+
+        .sidebar-nav-wrap {
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-section-title {
+            padding: 0 12px;
+            margin: 0 0 10px;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--sidebar-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.16em;
+        }
+
+        .sidebar-menu {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            padding-right: 4px;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .sidebar-menu::-webkit-scrollbar,
+        .sidebar::-webkit-scrollbar {
+            width: 0;
+            height: 0;
+        }
+
+        .sidebar-toggle {
+            display: none;
+            position: fixed;
+            top: 16px;
+            left: 16px;
+            z-index: 1001;
+            background: #ffffff;
+            color: var(--sidebar-text-strong);
+            border: 1px solid var(--sidebar-border);
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+            transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+        }
+
+        .sidebar-toggle:hover,
+        .sidebar-toggle:focus {
+            background: var(--sidebar-hover);
+            color: var(--ms-blue);
+            border-color: rgba(15, 108, 189, 0.2);
+            outline: none;
+        }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.32);
+            z-index: 999;
+            backdrop-filter: blur(2px);
+        }
+
+        .panel {
+            background: rgba(255, 255, 255, 0.92);
+            border: 1px solid rgba(219, 226, 234, 0.88);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(10px);
+            overflow: hidden;
+        }
+
+        .disclaimer {
+            background: #fff8ed;
+            border: 1px solid #f6d9a8;
+            border-left: 5px solid var(--warning);
+            border-radius: 14px;
+            padding: 18px 22px;
+            margin-bottom: 22px;
+            color: #5c4a24;
+            box-shadow: var(--shadow);
+        }
+
+        .disclaimer .disclaimer-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+            font-size: 15px;
+            color: #8a5a00;
+            margin: 0 0 8px;
+        }
+
+        .disclaimer p {
+            margin: 0 0 10px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .disclaimer p:last-child {
+            margin-bottom: 0;
+        }
+
+        .disclaimer a {
+            font-weight: 600;
+        }
+
+        .content h2 {
+            margin: 0 0 16px;
+            font-size: 20px;
+        }
+
+        .sidebar-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex: 1;
+        }
+
+        .sidebar-nav button,
+        .sidebar-nav a,
+        .sidebar-nav .sidebar-item,
+        .sidebar-nav summary {
+            width: 100%;
+            border: none;
+            background-color: transparent;
+            color: var(--sidebar-text);
+            padding: 11px 14px;
+            border-radius: 10px;
+            text-align: left;
+            font: inherit;
+            font-size: 13.5px;
+            font-weight: 500;
+            line-height: 1.4;
+            cursor: pointer;
+            transition: background-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: relative;
+            min-height: 42px;
+        }
+
+        .sidebar-nav button::before,
+        .sidebar-nav a::before,
+        .sidebar-nav .sidebar-item::before,
+        .sidebar-nav summary::before {
+            content: "";
+            position: absolute;
+            left: -12px;
+            top: 8px;
+            bottom: 8px;
+            width: 4px;
+            border-radius: 0 999px 999px 0;
+            background: var(--sidebar-indicator);
+            opacity: 0;
+            transform: scaleY(0.65);
+            transition: opacity 0.15s ease, transform 0.15s ease;
+        }
+
+        .sidebar-nav button:hover,
+        .sidebar-nav button:focus,
+        .sidebar-nav a:hover,
+        .sidebar-nav a:focus,
+        .sidebar-nav .sidebar-item:hover,
+        .sidebar-nav .sidebar-item:focus,
+        .sidebar-nav summary:hover,
+        .sidebar-nav summary:focus {
+            background-color: var(--sidebar-hover);
+            color: var(--ms-blue);
+            outline: none;
+            text-decoration: none;
+        }
+
+        .sidebar-nav button.active,
+        .sidebar-nav a.active,
+        .sidebar-nav .sidebar-item.active,
+        .sidebar-nav details[open] > summary {
+            color: var(--ms-blue);
+            background-color: var(--sidebar-active-bg);
+            font-weight: 600;
+        }
+
+        .sidebar-nav button.active::before,
+        .sidebar-nav a.active::before,
+        .sidebar-nav .sidebar-item.active::before,
+        .sidebar-nav details[open] > summary::before {
+            opacity: 1;
+            transform: scaleY(1);
+        }
+
+        .sidebar-nav details {
+            display: grid;
+            gap: 6px;
+        }
+
+        .sidebar-nav details > summary {
+            list-style: none;
+            padding-right: 36px;
+        }
+
+        .sidebar-nav details > summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .sidebar-nav details > summary::after {
+            content: "\203A";
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--sidebar-muted);
+            font-size: 16px;
+            font-weight: 700;
+            transition: transform 0.15s ease, color 0.15s ease;
+        }
+
+        .sidebar-nav details[open] > summary::after {
+            transform: translateY(-50%) rotate(90deg);
+            color: var(--ms-blue);
+        }
+
+        .sidebar-nav details > *:not(summary) {
+            margin-left: 12px;
+        }
+
+        .sidebar-nav .sidebar-icon {
+            width: 14px;
+            text-align: center;
+            color: var(--sidebar-muted);
+            font-size: 13px;
+            flex-shrink: 0;
+        }
+
+        .sidebar-nav .active .sidebar-icon,
+        .sidebar-nav button:hover .sidebar-icon,
+        .sidebar-nav a:hover .sidebar-icon,
+        .sidebar-nav summary:hover .sidebar-icon {
+            color: var(--ms-blue);
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding-top: 4px;
+        }
+
+        .sidebar-note {
+            display: grid;
+            gap: 10px;
+            padding: 16px;
+            border-radius: 16px;
+            background: linear-gradient(180deg, #f8fbff 0%, #f4f7fb 100%);
+            border: 1px solid var(--sidebar-border);
+            color: var(--text-muted);
+            font-size: 13px;
+            line-height: 1.6;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+        }
+
+        .sidebar-note-label {
+            margin: 0;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+            color: var(--sidebar-muted);
+        }
+
+        .sidebar-note-text {
+            margin: 0;
+        }
+
+        .sidebar-note-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--sidebar-text);
+        }
+
+        .sidebar-note-meta span {
+            display: inline-flex;
+            align-items: center;
+            padding: 5px 9px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.85);
+            border: 1px solid var(--sidebar-border-soft);
+        }
+
+        .content {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            width: 100%;
+            max-width: 100%;
+            min-width: 0;
+        }
+
+        .hero {
+            padding: 28px;
+        }
+
+        .hero-grid {
+            display: grid;
+            grid-template-columns: minmax(260px, 340px) minmax(0, 1fr);
+            gap: 28px;
+            align-items: center;
+        }
+
+        .score-tile {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 260px;
+            border-radius: 24px;
+            background: linear-gradient(180deg, #ffffff 0%, #f5f8fc 100%);
+            border: 1px solid var(--border);
+        }
+
+        .score-ring {
+            --score: var(--ring-score);
+            width: 176px;
+            height: 176px;
+            position: relative;
+        }
+
+        .score-ring svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .score-ring-bg {
+            fill: none;
+            stroke: #dbe5f0;
+            stroke-width: 16;
+        }
+
+        .score-ring-fill {
+            fill: none;
+            stroke: var(--ms-blue);
+            stroke-width: 16;
+            stroke-linecap: round;
+            transform: rotate(-90deg);
+            transform-origin: center;
+        }
+
+        .score-ring-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        .score-ring-text strong {
+            font-size: 42px;
+            line-height: 1;
+            display: block;
+        }
+
+        .score-ring-text span {
+            margin-top: 6px;
+            font-size: 13px;
+            color: var(--text-muted);
+            letter-spacing: 0.02em;
+            display: block;
+        }
+
+        .score-caption {
+            margin-top: 16px;
+            font-size: 15px;
+            color: var(--text-muted);
+        }
+
+        .executive-summary-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-top: 20px;
+        }
+
+        .executive-panel {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            padding: 24px;
+            border-radius: 18px;
+            background: #f8fafc;
+            border: 1px solid var(--border);
+        }
+
+        .executive-panel.standard {
+            border-color: var(--success);
+        }
+
+        .executive-panel.strict {
+            border-color: var(--warning);
+        }
+
+        .executive-panel-title {
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+        }
+
+        .executive-panel.standard .executive-panel-title {
+            color: var(--success);
+        }
+
+        .executive-panel.strict .executive-panel-title {
+            color: var(--warning);
+        }
+
+        .executive-panel .score-ring-fill.strict-fill {
+            stroke: var(--warning);
+        }
+
+        .executive-stats {
+            display: flex;
+            gap: 16px;
+        }
+
+        .executive-center {
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .executive-center .value {
+            font-size: 28px;
+            font-weight: 700;
+            display: block;
+        }
+
+        .executive-center .label {
+            font-size: 13px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .hero-copy h2 {
+            margin: 0 0 10px;
+            font-size: clamp(24px, 3vw, 34px);
+        }
+
+        .hero-copy p {
+            margin: 0 0 20px;
+            color: var(--text-muted);
+            line-height: 1.65;
+            font-size: 15px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .stat-card {
+            padding: 18px;
+            border-radius: 16px;
+            background: #f8fafc;
+            border: 1px solid var(--border);
+        }
+
+        .stat-card .label {
+            display: block;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .stat-card .value {
+            display: block;
+            font-size: 30px;
+            font-weight: 700;
+        }
+
+        .stat-card.success .value { color: var(--success); }
+        .stat-card.danger .value { color: var(--danger); }
+        .stat-card.warning .value { color: var(--warning); }
+        .stat-card.info .value { color: var(--ms-blue); }
+
+        .section-card {
+            padding: 24px 26px;
+            overflow: hidden;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+
+        .section-header p {
+            margin: 8px 0 0;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .legend-item,
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .legend-item::before,
+        .pill::before {
+            content: "";
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        .legend-item.success,
+        .pill.success {
+            color: var(--success);
+            background: rgba(16, 124, 16, 0.1);
+        }
+
+        .legend-item.danger,
+        .pill.danger {
+            color: var(--danger);
+            background: rgba(209, 52, 56, 0.1);
+        }
+
+        .legend-item.warning,
+        .pill.warning {
+            color: var(--warning);
+            background: rgba(255, 140, 0, 0.12);
+        }
+
+        .pill.info {
+            color: var(--ms-blue);
+            background: rgba(15, 108, 189, 0.1);
+        }
+
+        .pill.priority {
+            color: #b45309;
+            background: rgba(251, 191, 36, 0.15);
+            border: 1px solid #fbbf24;
+        }
+
+        .pill.policy-on { background: rgba(76, 175, 80, 0.15); color: #2e7d32; border: 1px solid #4caf50; }
+        .pill.policy-always-on { background: rgba(15, 108, 189, 0.1); color: #0f6cbd; border: 1px solid #0f6cbd; }
+        .pill.policy-off { background: rgba(239, 83, 80, 0.15); color: #c62828; border: 1px solid #ef5350; }
+        .pill.policy-na { background: rgba(148, 163, 184, 0.15); color: #64748b; border: 1px solid #94a3b8; }
+
+        .export-btn { background: rgba(15, 108, 189, 0.1); color: #0f6cbd; border: 1px solid #0f6cbd; border-radius: 8px; padding: 6px 14px; font-size: 12px; font-weight: 600; cursor: pointer; transition: background 0.2s, transform 0.1s; }
+        .export-btn:hover { background: rgba(15, 108, 189, 0.2); transform: translateY(-1px); }
+        .export-btn:active { transform: translateY(0); }
+
+        .category-card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 18px;
+        }
+
+        .category-card {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            padding: 20px;
+            border-radius: 18px;
+            border: 1px solid var(--border);
+            background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+            box-shadow: 0 10px 26px rgba(15, 23, 42, 0.06);
+        }
+
+        .category-card .card-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .category-card .icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            display: grid;
+            place-items: center;
+            font-size: 22px;
+            background: #eef5fc;
+        }
+
+        .category-card h3 {
+            margin: 0;
+            font-size: 18px;
+        }
+
+        .category-card .muted {
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        .mini-progress {
+            height: 10px;
+            border-radius: 999px;
+            overflow: hidden;
+            background: #dfe7f0;
+        }
+
+        .mini-progress span {
+            display: block;
+            height: 100%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, var(--ms-blue-dark), var(--ms-blue));
+        }
+
+        .card-metrics {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        .category-card-charts {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            margin-top: 8px;
+        }
+
+        .category-chart-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .category-chart-label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+        }
+
+        .category-chart-detail {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .detail-section {
+            display: grid;
+            gap: 18px;
+            scroll-margin-top: 20px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            margin-top: 24px;
+            overflow: hidden;
+        }
+
+        .detail-header {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 14px;
+            align-items: center;
+        }
+
+        .detail-header h3 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .detail-header p {
+            margin: 8px 0 0;
+            color: var(--text-muted);
+        }
+
+        .detail-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .ghost-button,
+        .toggle-button {
+            appearance: none;
+            border: 1px solid var(--border);
+            background: #ffffff;
+            color: var(--text);
+            border-radius: 999px;
+            padding: 10px 14px;
+            font: inherit;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .detail-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .policy-collapsible {
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            margin-bottom: 12px;
+            overflow: hidden;
+        }
+
+        .policy-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 18px;
+            cursor: pointer;
+            background: #f4f8fc;
+            transition: background 0.2s;
+        }
+
+        .policy-header:hover {
+            background: #e8f0f8;
+        }
+
+        .policy-toggle-icon {
+            font-size: 12px;
+            transition: transform 0.2s;
+            color: var(--text-muted);
+        }
+
+        .policy-collapsible.collapsed .policy-toggle-icon {
+            transform: rotate(-90deg);
+        }
+
+        .policy-title {
+            font-weight: 600;
+            font-size: 15px;
+            flex: 1;
+        }
+
+        .setting-param {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-family: 'Courier New', monospace;
+        }
+
+        .policy-content {
+            padding: 12px 18px 18px;
+        }
+
+        .policy-collapsible.collapsed .policy-content {
+            display: none;
+        }
+
+        .findings-table-wrap {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            background: #ffffff;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1100px;
+        }
+
+        thead {
+            background: #edf4fb;
+        }
+
+        th,
+        td {
+            padding: 16px 18px;
+            text-align: left;
+            vertical-align: top;
+            border-bottom: 1px solid #e7edf4;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+
+        td:nth-child(2),
+        td:nth-child(3),
+        td:nth-child(4),
+        td:nth-child(6) {
+            white-space: normal;
+            word-break: break-word;
+        }
+
+        th {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+        }
+
+        tbody tr:hover {
+            background: #fbfdff;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border: 1px solid transparent;
+            white-space: nowrap;
+        }
+
+        .status-badge.matched,
+        .status-badge.status-matched,
+        .status-badge.status-pass {
+            background: rgba(76, 175, 80, 0.15);
+            color: #4caf50;
+            border-color: #4caf50;
+        }
+
+        .status-badge.not-matched,
+        .status-badge.status-not-matched,
+        .status-badge.status-critical {
+            background: rgba(239, 83, 80, 0.15);
+            color: #ef5350;
+            border-color: #ef5350;
+        }
+
+        .status-badge.status-warning {
+            background: rgba(255, 140, 0, 0.15);
+            color: #ff8c00;
+            border-color: #ff8c00;
+        }
+
+        .reference-link {
+            font-weight: 600;
+        }
+
+        .footer {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 24px;
+            text-align: center;
+            margin-top: 40px;
+            border-top: 4px solid #3498db;
+        }
+
+        .footer-inner {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .footer-title {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .footer-date {
+            font-size: 13px;
+            color: #bdc3c7;
+        }
+
+        .footer-disclaimer {
+            font-size: 12px;
+            color: #95a5a6;
+            margin-top: 12px;
+            max-width: 920px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.6;
+        }
+
+        .collapsed .collapsible-content {
+            display: none;
+        }
+
+        .collapsed .toggle-button::after {
+            content: " Show";
+        }
+
+        .toggle-button::after {
+            content: " Hide";
+        }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        @media (max-width: 1120px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .sidebar-toggle {
+                display: block;
+            }
+
+            .sidebar-overlay.open {
+                display: block;
+            }
+
+            .page {
+                margin-left: 0;
+                padding: 28px 20px 36px;
+            }
+
+            .sidebar-nav {
+                display: flex;
+                flex-direction: column;
+            }
+        }
+
+        @media (max-width: 820px) {
+            .topbar-inner {
+                width: min(100% - 24px, 1440px);
+            }
+
+            .page {
+                padding: 16px 12px 36px;
+            }
+
+            .brand-row,
+            .hero-grid,
+            .detail-header {
+                grid-template-columns: 1fr;
+                display: grid;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .executive-summary-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero,
+            .section-card {
+                padding: 20px;
+            }
+
+            .sidebar-header {
+                padding: 18px 18px 14px;
+            }
+
+            .sidebar-body {
+                padding: 12px 10px 16px;
+            }
+        }
+
+        @media (max-width: 560px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .score-ring {
+                width: 148px;
+                height: 148px;
+            }
+
+            .score-ring::before {
+                inset: 14px;
+            }
+
+            .score-ring strong {
+                font-size: 36px;
+            }
+        }
+
+        @media print {
+            :root {
+                --shadow: none;
+            }
+
+            html,
+            body {
+                background: #ffffff !important;
+            }
+
+            .topbar {
+                box-shadow: none;
+                print-color-adjust: exact;
+                -webkit-print-color-adjust: exact;
+            }
+
+            .sidebar,
+            .sidebar-toggle,
+            .sidebar-overlay {
+                display: none !important;
+            }
+
+            .page {
+                margin-left: 0 !important;
+                padding-top: 20px;
+                width: 100%;
+            }
+
+            .sidebar-nav button,
+            .sidebar-nav a {
+                border-color: #ccd5df;
+                background: #ffffff !important;
+                color: #111827 !important;
+                box-shadow: none !important;
+                background-image: none !important;
+            }
+
+            .sidebar-note,
+            .ghost-button,
+            .toggle-button {
+                display: none !important;
+            }
+
+            .panel,
+            .category-card,
+            .findings-table-wrap,
+            .score-tile,
+            .stat-card {
+                box-shadow: none !important;
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+
+            .detail-section {
+                display: grid !important;
+                margin-top: 22px;
+            }
+
+            .detail-section + .detail-section {
+                page-break-before: always;
+            }
+
+            .collapsible-content {
+                display: block !important;
+            }
+
+            .footer {
+                padding-bottom: 0;
+            }
+
+            a {
+                color: inherit;
+                text-decoration: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="sidebar-toggle" onclick="toggleSidebar()">&#9776;</button>
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+    
+    <aside class="sidebar" id="sidebar" aria-label="Category navigation">
+        <div class="panel sidebar-shell">
+            <div class="sidebar-header">
+                <a class="sidebar-logo" href="#section-summary" onclick="scrollToSection('section-summary', null)">
+                    <div class="brand-mark" aria-hidden="true">
+                        <span></span><span></span><span></span><span></span>
+                    </div>
+                    <div class="sidebar-brand-copy">
+                        <p class="sidebar-brand-kicker">Microsoft Defender</p>
+                        <h2 class="sidebar-brand-name">MDO Analyzer</h2>
+                        <p class="sidebar-brand-subtitle">Threat policy review</p>
+                    </div>
+                </a>
+            </div>
+            <div class="sidebar-body">
+                <div class="sidebar-nav-wrap">
+                    <div class="sidebar-section-title">Navigation</div>
+                    <div class="sidebar-menu">
+                        <nav class="sidebar-nav" id="categoryNav">
+                            <a class="sidebar-item active" href="#section-summary" onclick="scrollToSection('section-summary', this); return false;">Executive Summary</a>
+<a class="sidebar-item" href="#section-categories" onclick="scrollToSection('section-categories', this); return false;">Category Scorecards</a>
+<a class="sidebar-item" href="#section-anti-malware" onclick="scrollToSection('section-anti-malware', this); return false;">Anti-Malware</a>
+<a class="sidebar-item" href="#section-anti-phishing" onclick="scrollToSection('section-anti-phishing', this); return false;">Anti-Phishing</a>
+<a class="sidebar-item" href="#section-anti-spam-inbound" onclick="scrollToSection('section-anti-spam-inbound', this); return false;">Anti-Spam (Inbound)</a>
+<a class="sidebar-item" href="#section-anti-spam-outbound" onclick="scrollToSection('section-anti-spam-outbound', this); return false;">Anti-Spam (Outbound)</a>
+<a class="sidebar-item" href="#section-safe-attachments" onclick="scrollToSection('section-safe-attachments', this); return false;">Safe Attachments</a>
+<a class="sidebar-item" href="#section-safe-links" onclick="scrollToSection('section-safe-links', this); return false;">Safe Links</a>
+<a class="sidebar-item" href="#section-global-atp-settings" onclick="scrollToSection('section-global-atp-settings', this); return false;">Global ATP Settings</a>
+<a class="sidebar-item" href="#section-additional-security-checks" onclick="scrollToSection('section-additional-security-checks', this); return false;">Additional Security Checks</a>
+                        </nav>
+                    </div>
+                </div>
+                <div class="sidebar-footer">
+                    <div class="sidebar-note">
+                        <p class="sidebar-note-label">Quick Tip</p>
+                        <p class="sidebar-note-text">Use the menu to jump between policy categories and review findings, gaps, and remediation guidance in a single flow.</p>
+                        <div class="sidebar-note-meta">
+                            <span>Standalone HTML</span>
+                            <span>2026-07-26 17:45:22</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <header class="topbar">
+        <div class="topbar-inner">
+            <div class="brand-row">
+                <div class="brand">
+                    <div class="brand-mark" aria-hidden="true">
+                        <span></span><span></span><span></span><span></span>
+                    </div>
+                    <div>
+                        <p class="eyebrow">Microsoft Defender for Office 365</p>
+                        <h1>MDO Threat Policy Analyzer</h1>
+                        <p>Contoso &middot; Executive-ready compliance analysis</p>
+                    </div>
+                </div>
+                <div class="meta-chip"><strong>Generated:</strong> <span>2026-07-26 17:45:22</span></div>
+            </div>
+        </div>
+    </header>
+
+    <main class="page">
+        <section class="content">
+            <div class="disclaimer" role="note">
+                <p class="disclaimer-title">&#9888; Important &mdash; Please read before acting on this report</p>
+                <p>This report evaluates the tenant against Microsoft's recommended security baselines and presents recommendations at two levels defined by Microsoft: <strong>Standard</strong> and <strong>Strict</strong>. While these recommendations reflect Microsoft best practices, they may not align with every organization's policies, risk tolerance, or operational requirements.</p>
+                <p>Before changing any settings based on these recommendations, review them with your security team and validate the impact in a test environment first. Do not apply a recommendation if it conflicts with your organization's policies or if your team follows a different, well-founded best practice.</p>
+                <p>You can automatically apply the Standard or Strict configuration to users using preset security policies. For details, see <a href="https://learn.microsoft.com/defender-office-365/preset-security-policies" target="_blank" rel="noopener noreferrer">Preset security policies in Microsoft Defender for Office 365</a>.</p>
+            </div>
+            <section class="panel hero" id="section-summary">
+                <h2>Executive Summary</h2>
+                <p>This assessment compares the tenant's Microsoft Defender for Office 365 configuration against Microsoft's recommended cloud security baseline. Use the scorecard below to understand coverage, identify high-impact configuration gaps, and prioritize remediation activity.</p>
+                <div class="executive-center">
+                    <span class="value">93</span>
+                    <span class="label">Settings Assessed</span>
+                </div>
+                <div class="executive-summary-grid">
+                    <div class="executive-panel standard">
+                        <div class="executive-panel-title">Recommended Standard</div>
+                        <div class="score-ring" aria-label="Standard compliance score">
+                            <svg viewBox="0 0 176 176">
+                                <circle cx="88" cy="88" r="70" class="score-ring-bg"/>
+                                <circle cx="88" cy="88" r="70" class="score-ring-fill"
+                                        stroke-dasharray="439.82"
+                                        stroke-dashoffset="calc(439.82 * (1 - 52 / 100))"/>
+                            </svg>
+                            <div class="score-ring-text">
+                                <strong>52%</strong>
+                                <span>Compliance</span>
+                            </div>
+                        </div>
+                        <div class="executive-stats">
+                            <div class="stat-card success">
+                                <span class="label">Matched</span>
+                                <span class="value">48</span>
+                            </div>
+                            <div class="stat-card danger">
+                                <span class="label">Not Matched</span>
+                                <span class="value">45</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="executive-panel strict">
+                        <div class="executive-panel-title">Recommended Strict</div>
+                        <div class="score-ring" aria-label="Strict compliance score">
+                            <svg viewBox="0 0 176 176">
+                                <circle cx="88" cy="88" r="70" class="score-ring-bg"/>
+                                <circle cx="88" cy="88" r="70" class="score-ring-fill strict-fill"
+                                        stroke-dasharray="439.82"
+                                        stroke-dashoffset="calc(439.82 * (1 - 49 / 100))"/>
+                            </svg>
+                            <div class="score-ring-text">
+                                <strong>49%</strong>
+                                <span>Compliance</span>
+                            </div>
+                        </div>
+                        <div class="executive-stats">
+                            <div class="stat-card success">
+                                <span class="label">Matched</span>
+                                <span class="value">46</span>
+                            </div>
+                            <div class="stat-card danger">
+                                <span class="label">Not Matched</span>
+                                <span class="value">47</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <div style="text-align: right; margin-bottom: 16px;">
+                <button type="button" class="export-btn" onclick="exportAllToExcel()">&#128196; Export All to Excel</button>
+            </div>
+
+            <section class="panel section-card" id="section-categories">
+                <div class="section-header">
+                    <div>
+                        <h2>Category Scorecards</h2>
+                        <p>Each card summarizes a control area, including its compliance trend and the number of controls meeting the recommended baseline.</p>
+                    </div>
+                    <div class="legend" aria-label="Status legend">
+                        <span class="legend-item success">&#10004; Matched</span>
+                        <span class="legend-item danger">&#10060; Not Matched</span>
+                    </div>
+                </div>
+                <div class="category-card-grid" id="categoryCards">
+                    <div class="category-card">
+    <div class="category-card-title">Anti-Malware</div>
+    <div class="category-card-charts">
+        <div class="category-chart-group">
+            <div class="category-chart-label">Standard</div>
+            <svg width="70" height="70" viewBox="0 0 70 70" style="display: block; margin: 0 auto;">
+    <circle cx="35" cy="35" r="28" fill="none" stroke="#1f2937" stroke-width="8"/>
+    <circle cx="35" cy="35" r="28" fill="none" stroke="#f59e0b" stroke-width="8" 
+            stroke-dasharray="175.93" stroke-dashoffset="43.98" 
+            stroke-linecap="round" transform="rotate(-90 35 35)"/>
+    <text x="35" y="41" text-anchor="middle" font-size="18" font-weight="700" fill="#f59e0b">75%</text>
+</svg>
+            <div class="category-chart-detail">9 / 12 matched</div>
+        </div>
+        <div class="category-chart-group">
+            <div class="category-chart-label">Strict</div>
+            <svg width="70" height="70" viewBox="0 0 70 70" style="display: block; margin: 0 auto;">
+    <circle cx="35" cy="35" r="28" fill="none" stroke="#1f2937" stroke-width="8"/>
+    <circle cx="35" cy="35" r="28" fill="none" stroke="#f59e0b" stroke-width="8" 
+            stroke-dasharray="175.93" stroke-dashoffset="43.98" 
+            stroke-linecap="round" transform="rotate(-90 35 35)"/>
+    <text x="35" y="41" text-anchor="middle" font-size="18" font-weight="700" fill="#f59e0b">75%</text>
+</svg>
+            <div class="category-chart-detail">9 / 12 matched</div>
+        </div>
+    </div>
+</div>
+<div class="category-card">
+    <div class="category-card-title">Anti-Phishing</div>
+    <div class="category-card-charts">
+        <div class="category-chart-group">
+            <div class="category-chart-label">Standard</div>
+            <svg width="70" height="70" viewBox="0 0 70 70" style="display: block; margin: 0 auto;">
+    <circle cx="35" cy="35" r="28" fill="none" stroke="#1f2937" stroke-width="8"/>
+    <circle cx="35" cy="35" r="28" fill="none" stroke="#ef4444" stroke-width="8" 
+            stroke-dasharray="175.93" stroke-dashoffset="123.15" 
+            stroke-linecap="round" transform="rotate(-90 35 35)"/>
+    <text x="35" y="41" text-anchor="middle" font-size="18" font-weight="700" fill="#ef4444">30%</text>
+</svg>
+            <div class="category-chart-detail">9 / 30 matched</div>
+        </div>
+        <div class="category-chart-group">
+            <div class="category-chart-label">Strict</div>
+            <svg width="70" height="70" viewBox="0 0 70 70" style="display: block; margin: 0 auto;">
+    <circle cx="35" cy="35" r="28" fill="none" stroke="#1f2937" stroke-width="8"/>
+    <circle cx="35" cy="35" r="28" fill="none" stroke="#ef4444" stroke-width="8" 
+            stroke-dasharray="175.93" stroke-dashoffset="123.15" 
+            stroke-linecap="round" transform="rotate(-90 35 35)"/>
+    <text x="35" y="41" text-anchor="middle" font-size="18" font-weight="700" fill="#ef4444">30%</text>
+</svg>
+            <div class="category-chart-detail">9 / 30 matched</div>
+        </div>
+    </div>
+</div>
+<div class="category-card">
+    <div class="category-card-title">Anti-Spam (Inbound)</div>
+    <div class="category-card-charts">
+        <div class="category-chart-group">
+            <div class="category-chart-label">Standard</div>
+            <svg width="70" height="70" viewBox="0 0 70 70" style="display: block; margin: 0 auto;">
+    <circle cx="35" cy="35" r="28" fill="none" stroke="#1f2937" stroke-width="8"/>
+    <circle cx="35" cy="35" r="28" fill="none" stroke="#ef4444" stroke-width="8" 
+            stroke-dasharray="175.93" stroke-dashoffset="96.76" 
+            stroke-linecap="round" transform="rotate(-90 35 35)"/>
+    <text x="35" y="41" text-anchor="middle" font-size="18" font-weight="700" fill="#ef4444">45%</text>
+</svg>
+            <div class="category-chart-detail">9 / 20 matched</div>
+        </div>
+        <div class="category-chart-group">
+            <div class="category-chart-label">Strict</div>
+            <svg width="70" height="70" viewBox="0 0 70 70" style="display: block; margin: 0 auto;">
+    <circle cx="35" cy="35" r="28" fill="none" stroke="#1f2937" stroke-width="8"/>
+    <circle cx="35" cy="35" r="28" fill="none" stroke="#ef4444" stroke-width="8" 
+            stroke-dasharray="175.93" stroke-dashoffset="114.35" 
+            stroke-linecap="round" transform="rotate(-90 35 35)"/>
+    <text x="35" y="41" text-anchor="middle" font-size="18" font-weight="700" fill="#ef4444">35%</text>
+</svg>
+            <div class="category-chart-detail">7 / 20 matched</div>
+        </div>
+    </div>
+</div>
+<div class="category-card">
+    <div class="category-card-title">Anti-Spam (Outbound)</div>
+    <div class="category-card-charts">
+        <div class="category-chart-group">
+            <div class="category-chart-label">Standard</div>
+            <svg width="70" height="70" viewBox="0 0 70 70" style="display: block; margin: 0 auto;">
+    <circle cx="35" cy="35" r="28" fill="none" stroke="#1f2937" stroke-width="8"/>
+    <circle cx="35" cy="35" r="28" fill="none" stroke="#f59e0b" stroke-width="8" 
+            stroke-dasharray="175.93" stroke-dashoffset="87.96" 
+            stroke-linecap="round" transform="rotate(-90 35 35)"/>
+    <text x="35" y="41" text-anchor="middle" font-size="18" font-weight="700" fill="#f59e0b">50%</text>
+</svg>
+            <div class="category-chart-detail">7 / 14 matched</div>
+        </div>
+        <div class="category-chart-group">
+            <div class="category-chart-label">Strict</div>
+            <svg width="70" height="70" viewBox="0 0 70 70" style="display: block; margin: 0 auto;">
+    <circle cx="35" cy="35" r="28" fill="none" stroke="#1f2937" stroke-width="8"/>
+    <circle cx="35" cy="35" r="28" fill="none" stroke="#f59e0b" stroke-width="8" 
+            stroke-dasharray="175.93" stroke-dashoffset="87.96" 
+            stroke-linecap="round" transform="rotate(-90 35 35)"/>
+    <text x="35" y="41" text-anchor="middle" font-size="18" font-weight="700" fill="#f59e0b">50%</text>
+</svg>
+            <div class="category-chart-detail">7 / 14 matched</div>
+        </div>
+    </div>
+</div>
+<div class="category-card">
+    <div class="category-card-title">Safe Attachments</div>
+    <div class="category-card-charts">
+        <div class="category-chart-group">
+            <div class="category-chart-label">Standard</div>
+            <svg width="70" height="70" viewBox="0 0 70 70" style="display: block; margin: 0 auto;">
+    <circle cx="35" cy="35" r="28" fill="none" stroke="#1f2937" stroke-width="8"/>
+    <circle cx="35" cy="35" r="28" fill="none" stroke="#10b981" stroke-width="8" 
+            stroke-dasharray="175.93" stroke-dashoffset="0" 
+            stroke-linecap="round" transform="rotate(-90 35 35)"/>
+    <text x="35" y="41" text-anchor="middle" font-size="18" font-weight="700" fill="#10b981">100%</text>
+</svg>
+            <div class="category-chart-detail">4 / 4 matched</div>
+        </div>
+        <div class="category-chart-group">
+            <div class="category-chart-label">Strict</div>
+            <svg width="70" height="70" viewBox="0 0 70 70" style="display: block; margin: 0 auto;">
+    <circle cx="35" cy="35" r="28" fill="none" stroke="#1f2937" stroke-width="8"/>
+    <circle cx="35" cy="35" r="28" fill="none" stroke="#10b981" stroke-width="8" 
+            stroke-dasharray="175.93" stroke-dashoffset="0" 
+            stroke-linecap="round" transform="rotate(-90 35 35)"/>
+    <text x="35" y="41" text-anchor="middle" font-size="18" font-weight="700" fill="#10b981">100%</text>
+</svg>
+            <div class="category-chart-detail">4 / 4 matched</div>
+        </div>
+    </div>
+</div>
+<div class="category-card">
+    <div class="category-card-title">Safe Links</div>
+    <div class="category-card-charts">
+        <div class="category-chart-group">
+            <div class="category-chart-label">Standard</div>
+            <svg width="70" height="70" viewBox="0 0 70 70" style="display: block; margin: 0 auto;">
+    <circle cx="35" cy="35" r="28" fill="none" stroke="#1f2937" stroke-width="8"/>
+    <circle cx="35" cy="35" r="28" fill="none" stroke="#f59e0b" stroke-width="8" 
+            stroke-dasharray="175.93" stroke-dashoffset="52.78" 
+            stroke-linecap="round" transform="rotate(-90 35 35)"/>
+    <text x="35" y="41" text-anchor="middle" font-size="18" font-weight="700" fill="#f59e0b">70%</text>
+</svg>
+            <div class="category-chart-detail">7 / 10 matched</div>
+        </div>
+        <div class="category-chart-group">
+            <div class="category-chart-label">Strict</div>
+            <svg width="70" height="70" viewBox="0 0 70 70" style="display: block; margin: 0 auto;">
+    <circle cx="35" cy="35" r="28" fill="none" stroke="#1f2937" stroke-width="8"/>
+    <circle cx="35" cy="35" r="28" fill="none" stroke="#f59e0b" stroke-width="8" 
+            stroke-dasharray="175.93" stroke-dashoffset="52.78" 
+            stroke-linecap="round" transform="rotate(-90 35 35)"/>
+    <text x="35" y="41" text-anchor="middle" font-size="18" font-weight="700" fill="#f59e0b">70%</text>
+</svg>
+            <div class="category-chart-detail">7 / 10 matched</div>
+        </div>
+    </div>
+</div>
+<div class="category-card">
+    <div class="category-card-title">Global ATP Settings</div>
+    <div class="category-card-charts">
+        <div class="category-chart-group">
+            <div class="category-chart-label">Standard</div>
+            <svg width="70" height="70" viewBox="0 0 70 70" style="display: block; margin: 0 auto;">
+    <circle cx="35" cy="35" r="28" fill="none" stroke="#1f2937" stroke-width="8"/>
+    <circle cx="35" cy="35" r="28" fill="none" stroke="#10b981" stroke-width="8" 
+            stroke-dasharray="175.93" stroke-dashoffset="0" 
+            stroke-linecap="round" transform="rotate(-90 35 35)"/>
+    <text x="35" y="41" text-anchor="middle" font-size="18" font-weight="700" fill="#10b981">100%</text>
+</svg>
+            <div class="category-chart-detail">3 / 3 matched</div>
+        </div>
+        <div class="category-chart-group">
+            <div class="category-chart-label">Strict</div>
+            <svg width="70" height="70" viewBox="0 0 70 70" style="display: block; margin: 0 auto;">
+    <circle cx="35" cy="35" r="28" fill="none" stroke="#1f2937" stroke-width="8"/>
+    <circle cx="35" cy="35" r="28" fill="none" stroke="#10b981" stroke-width="8" 
+            stroke-dasharray="175.93" stroke-dashoffset="0" 
+            stroke-linecap="round" transform="rotate(-90 35 35)"/>
+    <text x="35" y="41" text-anchor="middle" font-size="18" font-weight="700" fill="#10b981">100%</text>
+</svg>
+            <div class="category-chart-detail">3 / 3 matched</div>
+        </div>
+    </div>
+</div>
+                </div>
+            </section>
+
+            <section class="panel section-card" id="detailsPanel">
+                <div class="section-header">
+                    <div>
+                        <h2>Detailed Findings</h2>
+                        <p>Control-level evidence, recommended values, and reference links for remediation planning and executive review.</p>
+                    </div>
+                </div>
+                <div id="detailSections">
+                    <section class="detail-section" id="section-anti-malware" data-section="anti-malware">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h2>Anti-Malware</h2>
+        <button type="button" class="export-btn" onclick="exportSectionToCsv('section-anti-malware')">&#128196; Export to Excel</button>
+    </div>
+    <div class="detail-meta">
+        <span class="pill success">&#10004; Matched = baseline met</span>
+        <span class="pill danger">&#10060; Not Matched = remediation advised</span>
+    </div>
+    <div class="policy-collapsible collapsed" id="section-anti-malware-custom-anti-malware">
+    <div class="policy-header" onclick="togglePolicy('section-anti-malware-custom-anti-malware')">
+        <span class="policy-toggle-icon">&#9660;</span>
+        <span class="policy-title">Custom_Anti-malware</span>
+        <span class="pill policy-on">Policy Status: On</span>
+        <span class="pill priority">Priority: 0</span>
+        <span class="pill info">Standard: 3 / 6</span>
+        <span class="pill info">Strict: 3 / 6</span>
+    </div>
+    <div class="policy-content">
+        <div class="findings-table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Setting Name</th>
+                    <th>Current Value</th>
+                    <th>Recommended Standard Value</th>
+                    <th>Standard Status</th>
+                    <th>Recommended Strict Value</th>
+                    <th>Strict Status</th>
+                    <th>Reference</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+    <td>Enable the common attachments filter<br><span class="setting-param">(EnableFileFilter)</span></td>
+    <td>false</td>
+    <td>true</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td>true</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#anti-malware-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Common attachment filter notifications: When these file types are found<br><span class="setting-param">(FileTypeAction)</span></td>
+    <td>Reject</td>
+    <td>Reject</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td>Reject</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#anti-malware-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Enable zero-hour auto purge (ZAP)<br><span class="setting-param">(ZapEnabled)</span></td>
+    <td>false</td>
+    <td>true</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td>true</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#anti-malware-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Quarantine policy<br><span class="setting-param">(QuarantineTag)</span></td>
+    <td>DefaultFullAccessWithNotificationPolicy</td>
+    <td>AdminOnlyAccessPolicy</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td>AdminOnlyAccessPolicy</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#anti-malware-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Notify an admin about undelivered messages from internal senders<br><span class="setting-param">(EnableInternalSenderAdminNotifications)</span></td>
+    <td>false</td>
+    <td>false</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td>false</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#anti-malware-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Notify an admin about undelivered messages from external senders<br><span class="setting-param">(EnableExternalSenderAdminNotifications)</span></td>
+    <td>false</td>
+    <td>false</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td>false</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#anti-malware-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+            </tbody>
+        </table>
+        </div>
+    </div>
+</div>
+<div class="policy-collapsible collapsed" id="section-anti-malware-default">
+    <div class="policy-header" onclick="togglePolicy('section-anti-malware-default')">
+        <span class="policy-toggle-icon">&#9660;</span>
+        <span class="policy-title">Default</span>
+        <span class="pill policy-always-on">Policy Status: Always On</span>
+        <span class="pill priority">Priority: Lowest (Default)</span>
+        <span class="pill info">Standard: 6 / 6</span>
+        <span class="pill info">Strict: 6 / 6</span>
+    </div>
+    <div class="policy-content">
+        <div class="findings-table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Setting Name</th>
+                    <th>Current Value</th>
+                    <th>Recommended Standard Value</th>
+                    <th>Standard Status</th>
+                    <th>Recommended Strict Value</th>
+                    <th>Strict Status</th>
+                    <th>Reference</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+    <td>Enable the common attachments filter<br><span class="setting-param">(EnableFileFilter)</span></td>
+    <td>true</td>
+    <td>true</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td>true</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#anti-malware-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Common attachment filter notifications: When these file types are found<br><span class="setting-param">(FileTypeAction)</span></td>
+    <td>Reject</td>
+    <td>Reject</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td>Reject</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#anti-malware-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Enable zero-hour auto purge (ZAP)<br><span class="setting-param">(ZapEnabled)</span></td>
+    <td>true</td>
+    <td>true</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td>true</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#anti-malware-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Quarantine policy<br><span class="setting-param">(QuarantineTag)</span></td>
+    <td>AdminOnlyAccessPolicy</td>
+    <td>AdminOnlyAccessPolicy</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td>AdminOnlyAccessPolicy</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#anti-malware-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Notify an admin about undelivered messages from internal senders<br><span class="setting-param">(EnableInternalSenderAdminNotifications)</span></td>
+    <td>false</td>
+    <td>false</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td>false</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#anti-malware-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Notify an admin about undelivered messages from external senders<br><span class="setting-param">(EnableExternalSenderAdminNotifications)</span></td>
+    <td>false</td>
+    <td>false</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td>false</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#anti-malware-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+            </tbody>
+        </table>
+        </div>
+    </div>
+</div>
+</section>
+<section class="detail-section" id="section-anti-phishing" data-section="anti-phishing">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h2>Anti-Phishing</h2>
+        <button type="button" class="export-btn" onclick="exportSectionToCsv('section-anti-phishing')">&#128196; Export to Excel</button>
+    </div>
+    <div class="detail-meta">
+        <span class="pill success">&#10004; Matched = baseline met</span>
+        <span class="pill danger">&#10060; Not Matched = remediation advised</span>
+    </div>
+    <div class="policy-collapsible collapsed" id="section-anti-phishing-custom-anti-phishing">
+    <div class="policy-header" onclick="togglePolicy('section-anti-phishing-custom-anti-phishing')">
+        <span class="policy-toggle-icon">&#9660;</span>
+        <span class="policy-title">Custom_Anti-phishing</span>
+        <span class="pill policy-on">Policy Status: On</span>
+        <span class="pill priority">Priority: 0</span>
+        <span class="pill info">Standard: 3 / 15</span>
+        <span class="pill info">Strict: 4 / 15</span>
+    </div>
+    <div class="policy-content">
+        <div class="findings-table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Setting Name</th>
+                    <th>Current Value</th>
+                    <th>Recommended Standard Value</th>
+                    <th>Standard Status</th>
+                    <th>Recommended Strict Value</th>
+                    <th>Strict Status</th>
+                    <th>Reference</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+    <td>Phishing email threshold<br><span class="setting-param">(PhishThresholdLevel)</span></td>
+    <td>1</td>
+    <td>3</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td>4</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#anti-phishing-policy-settings-for-all-cloud-mailboxes" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Enable mailbox intelligence<br><span class="setting-param">(EnableMailboxIntelligence)</span></td>
+    <td>false</td>
+    <td>true</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td>true</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#anti-phishing-policy-settings-for-all-cloud-mailboxes" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Enable intelligence for impersonation protection<br><span class="setting-param">(EnableMailboxIntelligenceProtection)</span></td>
+    <td>false</td>
+    <td>true</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td>true</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#anti-phishing-policy-settings-for-all-cloud-mailboxes" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Enable spoof intelligence<br><span class="setting-param">(EnableSpoofIntelligence)</span></td>
+    <td>true</td>
+    <td>true</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td>true</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#anti-phishing-policy-settings-for-all-cloud-mailboxes" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Show first contact safety tip<br><span class="setting-param">(EnableFirstContactSafetyTips)</span></td>
+    <td>false</td>
+    <td>true</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td>true</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#anti-phishing-policy-settings-for-all-cloud-mailboxes" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Show user impersonation safety tip<br><span class="setting-param">(EnableSimilarUsersSafetyTips)</span></td>
+    <td>false</td>
+    <td>true</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td>true</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#anti-phishing-policy-settings-for-all-cloud-mailboxes" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Show domain impersonation safety tip<br><span class="setting-param">(EnableSimilarDomainsSafetyTips)</span></td>
+    <td>false</td>
+    <td>true</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td>true</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#anti-phishing-policy-settings-for-all-cloud-mailboxes" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Show user impersonation unusual characters safety tip<br><span class="setting-param">(EnableUnusualCharactersSafetyTips)</span></td>
+    <td>false</td>
+    <td>true</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td>true</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#anti-phishing-policy-settings-for-all-cloud-mailboxes" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>If mailbox intelligence detects an impersonated user<br><span class="setting-param">(MailboxIntelligenceProtectionAction)</span></td>
+    <td>NoAction</td>
+    <td>MoveToJmf</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td>Quarantine</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#anti-phishing-policy-settings-for-all-cloud-mailboxes" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>If a message is detected as user impersonation<br><span class="setting-param">(TargetedUserProtectionAction)</span></td>
+    <td>NoAction</td>
+    <td>Quarantine</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td>Quarantine</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#anti-phishing-policy-settings-for-all-cloud-mailboxes" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>If a message is detected as domain impersonation<br><span class="setting-param">(TargetedDomainProtectionAction)</span></td>
+    <td>NoAction</td>
+    <td>Quarantine</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td>Quarantine</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#anti-phishing-policy-settings-for-all-cloud-mailboxes" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>If the message is detected as spoof by spoof intelligence<br><span class="setting-param">(AuthenticationFailAction)</span></td>
+    <td>Quarantine</td>
+    <td>MoveToJmf</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td>Quarantine</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#anti-phishing-policy-settings-for-all-cloud-mailboxes" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Honor DMARC record policy when the message is detected as spoof<br><span class="setting-param">(HonorDmarcPolicy)</span></td>
+    <td>true</td>
+    <td>true</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td>true</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#anti-phishing-policy-settings-for-all-cloud-mailboxes" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>If the message is detected as spoof and DMARC Policy is set as p=quarantine<br><span class="setting-param">(DmarcQuarantineAction)</span></td>
+    <td>MoveToJmf</td>
+    <td>Quarantine</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td>Quarantine</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#anti-phishing-policy-settings-for-all-cloud-mailboxes" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>If the message is detected as spoof and DMARC Policy is set as p=reject<br><span class="setting-param">(DmarcRejectAction)</span></td>
+    <td>Reject</td>
+    <td>Reject</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td>Reject</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#anti-phishing-policy-settings-for-all-cloud-mailboxes" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+            </tbody>
+        </table>
+        </div>
+    </div>
+</div>
+<div class="policy-collapsible collapsed" id="section-anti-phishing-office365-antiphish-default">
+    <div class="policy-header" onclick="togglePolicy('section-anti-phishing-office365-antiphish-default')">
+        <span class="policy-toggle-icon">&#9660;</span>
+        <span class="policy-title">Office365 AntiPhish Default</span>
+        <span class="pill policy-always-on">Policy Status: Always On</span>
+        <span class="pill priority">Priority: Lowest (Default)</span>
+        <span class="pill info">Standard: 6 / 15</span>
+        <span class="pill info">Strict: 5 / 15</span>
+    </div>
+    <div class="policy-content">
+        <div class="findings-table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Setting Name</th>
+                    <th>Current Value</th>
+                    <th>Recommended Standard Value</th>
+                    <th>Standard Status</th>
+                    <th>Recommended Strict Value</th>
+                    <th>Strict Status</th>
+                    <th>Reference</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+    <td>Phishing email threshold<br><span class="setting-param">(PhishThresholdLevel)</span></td>
+    <td>1</td>
+    <td>3</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td>4</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#anti-phishing-policy-settings-for-all-cloud-mailboxes" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Enable mailbox intelligence<br><span class="setting-param">(EnableMailboxIntelligence)</span></td>
+    <td>true</td>
+    <td>true</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td>true</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#anti-phishing-policy-settings-for-all-cloud-mailboxes" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Enable intelligence for impersonation protection<br><span class="setting-param">(EnableMailboxIntelligenceProtection)</span></td>
+    <td>false</td>
+    <td>true</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td>true</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#anti-phishing-policy-settings-for-all-cloud-mailboxes" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Enable spoof intelligence<br><span class="setting-param">(EnableSpoofIntelligence)</span></td>
+    <td>true</td>
+    <td>true</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td>true</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#anti-phishing-policy-settings-for-all-cloud-mailboxes" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Show first contact safety tip<br><span class="setting-param">(EnableFirstContactSafetyTips)</span></td>
+    <td>false</td>
+    <td>true</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td>true</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#anti-phishing-policy-settings-for-all-cloud-mailboxes" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Show user impersonation safety tip<br><span class="setting-param">(EnableSimilarUsersSafetyTips)</span></td>
+    <td>false</td>
+    <td>true</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td>true</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#anti-phishing-policy-settings-for-all-cloud-mailboxes" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Show domain impersonation safety tip<br><span class="setting-param">(EnableSimilarDomainsSafetyTips)</span></td>
+    <td>false</td>
+    <td>true</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td>true</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#anti-phishing-policy-settings-for-all-cloud-mailboxes" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Show user impersonation unusual characters safety tip<br><span class="setting-param">(EnableUnusualCharactersSafetyTips)</span></td>
+    <td>false</td>
+    <td>true</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td>true</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#anti-phishing-policy-settings-for-all-cloud-mailboxes" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>If mailbox intelligence detects an impersonated user<br><span class="setting-param">(MailboxIntelligenceProtectionAction)</span></td>
+    <td>NoAction</td>
+    <td>MoveToJmf</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td>Quarantine</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#anti-phishing-policy-settings-for-all-cloud-mailboxes" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>If a message is detected as user impersonation<br><span class="setting-param">(TargetedUserProtectionAction)</span></td>
+    <td>NoAction</td>
+    <td>Quarantine</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td>Quarantine</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#anti-phishing-policy-settings-for-all-cloud-mailboxes" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>If a message is detected as domain impersonation<br><span class="setting-param">(TargetedDomainProtectionAction)</span></td>
+    <td>NoAction</td>
+    <td>Quarantine</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td>Quarantine</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#anti-phishing-policy-settings-for-all-cloud-mailboxes" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>If the message is detected as spoof by spoof intelligence<br><span class="setting-param">(AuthenticationFailAction)</span></td>
+    <td>MoveToJmf</td>
+    <td>MoveToJmf</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td>Quarantine</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#anti-phishing-policy-settings-for-all-cloud-mailboxes" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Honor DMARC record policy when the message is detected as spoof<br><span class="setting-param">(HonorDmarcPolicy)</span></td>
+    <td>true</td>
+    <td>true</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td>true</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#anti-phishing-policy-settings-for-all-cloud-mailboxes" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>If the message is detected as spoof and DMARC Policy is set as p=quarantine<br><span class="setting-param">(DmarcQuarantineAction)</span></td>
+    <td>Quarantine</td>
+    <td>Quarantine</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td>Quarantine</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#anti-phishing-policy-settings-for-all-cloud-mailboxes" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>If the message is detected as spoof and DMARC Policy is set as p=reject<br><span class="setting-param">(DmarcRejectAction)</span></td>
+    <td>Reject</td>
+    <td>Reject</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td>Reject</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#anti-phishing-policy-settings-for-all-cloud-mailboxes" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+            </tbody>
+        </table>
+        </div>
+    </div>
+</div>
+</section>
+<section class="detail-section" id="section-anti-spam-inbound" data-section="anti-spam-inbound">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h2>Anti-Spam (Inbound)</h2>
+        <button type="button" class="export-btn" onclick="exportSectionToCsv('section-anti-spam-inbound')">&#128196; Export to Excel</button>
+    </div>
+    <div class="detail-meta">
+        <span class="pill success">&#10004; Matched = baseline met</span>
+        <span class="pill danger">&#10060; Not Matched = remediation advised</span>
+    </div>
+    <div class="policy-collapsible collapsed" id="section-anti-spam-inbound-custom-inbound-anti-spam">
+    <div class="policy-header" onclick="togglePolicy('section-anti-spam-inbound-custom-inbound-anti-spam')">
+        <span class="policy-toggle-icon">&#9660;</span>
+        <span class="policy-title">Custom_inbound_Anti-Spam</span>
+        <span class="pill policy-on">Policy Status: On</span>
+        <span class="pill priority">Priority: 0</span>
+        <span class="pill info">Standard: 3 / 10</span>
+        <span class="pill info">Strict: 3 / 10</span>
+    </div>
+    <div class="policy-content">
+        <div class="findings-table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Setting Name</th>
+                    <th>Current Value</th>
+                    <th>Recommended Standard Value</th>
+                    <th>Standard Status</th>
+                    <th>Recommended Strict Value</th>
+                    <th>Strict Status</th>
+                    <th>Reference</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+    <td>Spam detection action<br><span class="setting-param">(SpamAction)</span></td>
+    <td>MoveToJmf</td>
+    <td>MoveToJmf</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td>Quarantine</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#anti-spam-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>High confidence spam detection action<br><span class="setting-param">(HighConfidenceSpamAction)</span></td>
+    <td>Delete</td>
+    <td>Quarantine</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td>Quarantine</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#anti-spam-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Phishing detection action<br><span class="setting-param">(PhishSpamAction)</span></td>
+    <td>MoveToJmf</td>
+    <td>Quarantine</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td>Quarantine</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#anti-spam-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>High confidence phishing detection action<br><span class="setting-param">(HighConfidencePhishAction)</span></td>
+    <td>Quarantine</td>
+    <td>Quarantine</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td>Quarantine</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#anti-spam-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Bulk compliant level (BCL) met or exceeded<br><span class="setting-param">(BulkSpamAction)</span></td>
+    <td>Quarantine</td>
+    <td>MoveToJmf</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td>Quarantine</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#anti-spam-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Bulk email threshold<br><span class="setting-param">(BulkThreshold)</span></td>
+    <td>7</td>
+    <td>6</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td>5</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#anti-spam-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Retain spam in quarantine for this many days<br><span class="setting-param">(QuarantineRetentionPeriod)</span></td>
+    <td>15</td>
+    <td>30</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td>30</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#anti-spam-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Enable spam safety tips<br><span class="setting-param">(InlineSafetyTipsEnabled)</span></td>
+    <td>true</td>
+    <td>true</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td>true</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#anti-spam-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Enable ZAP for spam messages<br><span class="setting-param">(SpamZapEnabled)</span></td>
+    <td>false</td>
+    <td>true</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td>true</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#anti-spam-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Enable zero-hour auto purge (ZAP) for phishing messages<br><span class="setting-param">(PhishZapEnabled)</span></td>
+    <td>false</td>
+    <td>true</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td>true</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#anti-spam-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+            </tbody>
+        </table>
+        </div>
+    </div>
+</div>
+<div class="policy-collapsible collapsed" id="section-anti-spam-inbound-default">
+    <div class="policy-header" onclick="togglePolicy('section-anti-spam-inbound-default')">
+        <span class="policy-toggle-icon">&#9660;</span>
+        <span class="policy-title">Default</span>
+        <span class="pill policy-always-on">Policy Status: Always On</span>
+        <span class="pill priority">Priority: Lowest (Default)</span>
+        <span class="pill info">Standard: 6 / 10</span>
+        <span class="pill info">Strict: 4 / 10</span>
+    </div>
+    <div class="policy-content">
+        <div class="findings-table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Setting Name</th>
+                    <th>Current Value</th>
+                    <th>Recommended Standard Value</th>
+                    <th>Standard Status</th>
+                    <th>Recommended Strict Value</th>
+                    <th>Strict Status</th>
+                    <th>Reference</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+    <td>Spam detection action<br><span class="setting-param">(SpamAction)</span></td>
+    <td>MoveToJmf</td>
+    <td>MoveToJmf</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td>Quarantine</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#anti-spam-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>High confidence spam detection action<br><span class="setting-param">(HighConfidenceSpamAction)</span></td>
+    <td>MoveToJmf</td>
+    <td>Quarantine</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td>Quarantine</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#anti-spam-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Phishing detection action<br><span class="setting-param">(PhishSpamAction)</span></td>
+    <td>MoveToJmf</td>
+    <td>Quarantine</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td>Quarantine</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#anti-spam-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>High confidence phishing detection action<br><span class="setting-param">(HighConfidencePhishAction)</span></td>
+    <td>Quarantine</td>
+    <td>Quarantine</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td>Quarantine</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#anti-spam-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Bulk compliant level (BCL) met or exceeded<br><span class="setting-param">(BulkSpamAction)</span></td>
+    <td>MoveToJmf</td>
+    <td>MoveToJmf</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td>Quarantine</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#anti-spam-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Bulk email threshold<br><span class="setting-param">(BulkThreshold)</span></td>
+    <td>7</td>
+    <td>6</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td>5</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#anti-spam-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Retain spam in quarantine for this many days<br><span class="setting-param">(QuarantineRetentionPeriod)</span></td>
+    <td>15</td>
+    <td>30</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td>30</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#anti-spam-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Enable spam safety tips<br><span class="setting-param">(InlineSafetyTipsEnabled)</span></td>
+    <td>true</td>
+    <td>true</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td>true</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#anti-spam-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Enable ZAP for spam messages<br><span class="setting-param">(SpamZapEnabled)</span></td>
+    <td>true</td>
+    <td>true</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td>true</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#anti-spam-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Enable zero-hour auto purge (ZAP) for phishing messages<br><span class="setting-param">(PhishZapEnabled)</span></td>
+    <td>true</td>
+    <td>true</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td>true</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#anti-spam-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+            </tbody>
+        </table>
+        </div>
+    </div>
+</div>
+</section>
+<section class="detail-section" id="section-anti-spam-outbound" data-section="anti-spam-outbound">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h2>Anti-Spam (Outbound)</h2>
+        <button type="button" class="export-btn" onclick="exportSectionToCsv('section-anti-spam-outbound')">&#128196; Export to Excel</button>
+    </div>
+    <div class="detail-meta">
+        <span class="pill success">&#10004; Matched = baseline met</span>
+        <span class="pill danger">&#10060; Not Matched = remediation advised</span>
+    </div>
+    <div class="policy-collapsible collapsed" id="section-anti-spam-outbound-custom-outbound-antu-spam">
+    <div class="policy-header" onclick="togglePolicy('section-anti-spam-outbound-custom-outbound-antu-spam')">
+        <span class="policy-toggle-icon">&#9660;</span>
+        <span class="policy-title">Custom_Outbound_Antu-Spam</span>
+        <span class="pill policy-on">Policy Status: On</span>
+        <span class="pill priority">Priority: 0</span>
+        <span class="pill info">Standard: 4 / 7</span>
+        <span class="pill info">Strict: 4 / 7</span>
+    </div>
+    <div class="policy-content">
+        <div class="findings-table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Setting Name</th>
+                    <th>Current Value</th>
+                    <th>Recommended Standard Value</th>
+                    <th>Standard Status</th>
+                    <th>Recommended Strict Value</th>
+                    <th>Strict Status</th>
+                    <th>Reference</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+    <td>Set an external message limit<br><span class="setting-param">(RecipientLimitExternalPerHour)</span></td>
+    <td>10000</td>
+    <td>500</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td>400</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#outbound-spam-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Set an internal message limit<br><span class="setting-param">(RecipientLimitInternalPerHour)</span></td>
+    <td>10000</td>
+    <td>1000</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td>800</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#outbound-spam-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Set a daily message limit<br><span class="setting-param">(RecipientLimitPerDay)</span></td>
+    <td>10000</td>
+    <td>1000</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td>800</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#outbound-spam-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Restriction placed on users who reach the message limit<br><span class="setting-param">(ActionWhenThresholdReached)</span></td>
+    <td>BlockUser</td>
+    <td>BlockUser</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td>BlockUser</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#outbound-spam-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Automatic forwarding rules<br><span class="setting-param">(AutoForwardingMode)</span></td>
+    <td>Off</td>
+    <td>Automatic</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td>Automatic</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#outbound-spam-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Send a copy of outbound messages that exceed these limits<br><span class="setting-param">(BccSuspiciousOutboundMail)</span></td>
+    <td>false</td>
+    <td>false</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td>false</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#outbound-spam-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Notify these users and groups if a sender is blocked due to sending outbound spam<br><span class="setting-param">(NotifyOutboundSpam)</span></td>
+    <td>false</td>
+    <td>false</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td>false</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#outbound-spam-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+            </tbody>
+        </table>
+        </div>
+    </div>
+</div>
+<div class="policy-collapsible collapsed" id="section-anti-spam-outbound-default">
+    <div class="policy-header" onclick="togglePolicy('section-anti-spam-outbound-default')">
+        <span class="policy-toggle-icon">&#9660;</span>
+        <span class="policy-title">Default</span>
+        <span class="pill policy-always-on">Policy Status: Always On</span>
+        <span class="pill priority">Priority: Lowest (Default)</span>
+        <span class="pill info">Standard: 3 / 7</span>
+        <span class="pill info">Strict: 3 / 7</span>
+    </div>
+    <div class="policy-content">
+        <div class="findings-table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Setting Name</th>
+                    <th>Current Value</th>
+                    <th>Recommended Standard Value</th>
+                    <th>Standard Status</th>
+                    <th>Recommended Strict Value</th>
+                    <th>Strict Status</th>
+                    <th>Reference</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+    <td>Set an external message limit<br><span class="setting-param">(RecipientLimitExternalPerHour)</span></td>
+    <td>0</td>
+    <td>500</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td>400</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#outbound-spam-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Set an internal message limit<br><span class="setting-param">(RecipientLimitInternalPerHour)</span></td>
+    <td>0</td>
+    <td>1000</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td>800</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#outbound-spam-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Set a daily message limit<br><span class="setting-param">(RecipientLimitPerDay)</span></td>
+    <td>0</td>
+    <td>1000</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td>800</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#outbound-spam-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Restriction placed on users who reach the message limit<br><span class="setting-param">(ActionWhenThresholdReached)</span></td>
+    <td>BlockUserForToday</td>
+    <td>BlockUser</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td>BlockUser</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#outbound-spam-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Automatic forwarding rules<br><span class="setting-param">(AutoForwardingMode)</span></td>
+    <td>Automatic</td>
+    <td>Automatic</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td>Automatic</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#outbound-spam-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Send a copy of outbound messages that exceed these limits<br><span class="setting-param">(BccSuspiciousOutboundMail)</span></td>
+    <td>false</td>
+    <td>false</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td>false</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#outbound-spam-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Notify these users and groups if a sender is blocked due to sending outbound spam<br><span class="setting-param">(NotifyOutboundSpam)</span></td>
+    <td>false</td>
+    <td>false</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td>false</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#outbound-spam-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+            </tbody>
+        </table>
+        </div>
+    </div>
+</div>
+</section>
+<section class="detail-section" id="section-safe-attachments" data-section="safe-attachments">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h2>Safe Attachments</h2>
+        <button type="button" class="export-btn" onclick="exportSectionToCsv('section-safe-attachments')">&#128196; Export to Excel</button>
+    </div>
+    <div class="detail-meta">
+        <span class="pill success">&#10004; Matched = baseline met</span>
+        <span class="pill danger">&#10060; Not Matched = remediation advised</span>
+    </div>
+    <div class="policy-collapsible collapsed" id="section-safe-attachments-built-in-protection-policy">
+    <div class="policy-header" onclick="togglePolicy('section-safe-attachments-built-in-protection-policy')">
+        <span class="policy-toggle-icon">&#9660;</span>
+        <span class="policy-title">Built-In Protection Policy</span>
+        <span class="pill policy-always-on">Policy Status: Always On</span>
+        <span class="pill priority">Priority: Lowest (Default)</span>
+        <span class="pill info">Standard: 4 / 4</span>
+        <span class="pill info">Strict: 4 / 4</span>
+    </div>
+    <div class="policy-content">
+        <div class="findings-table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Setting Name</th>
+                    <th>Current Value</th>
+                    <th>Recommended Standard Value</th>
+                    <th>Standard Status</th>
+                    <th>Recommended Strict Value</th>
+                    <th>Strict Status</th>
+                    <th>Reference</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+    <td>Safe Attachments unknown malware response<br><span class="setting-param">(Action)</span></td>
+    <td>Block</td>
+    <td>Block</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td>Block</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#safe-attachments-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Safe Attachments unknown malware response<br><span class="setting-param">(Enable)</span></td>
+    <td>true</td>
+    <td>true</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td>true</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#safe-attachments-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Quarantine policy<br><span class="setting-param">(QuarantineTag)</span></td>
+    <td>AdminOnlyAccessPolicy</td>
+    <td>AdminOnlyAccessPolicy</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td>AdminOnlyAccessPolicy</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#safe-attachments-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Redirect attachment with detected attachments: Enable redirect<br><span class="setting-param">(Redirect)</span></td>
+    <td>false</td>
+    <td>false</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td>false</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#safe-attachments-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+            </tbody>
+        </table>
+        </div>
+    </div>
+</div>
+</section>
+<section class="detail-section" id="section-safe-links" data-section="safe-links">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h2>Safe Links</h2>
+        <button type="button" class="export-btn" onclick="exportSectionToCsv('section-safe-links')">&#128196; Export to Excel</button>
+    </div>
+    <div class="detail-meta">
+        <span class="pill success">&#10004; Matched = baseline met</span>
+        <span class="pill danger">&#10060; Not Matched = remediation advised</span>
+    </div>
+    <div class="policy-collapsible collapsed" id="section-safe-links-built-in-protection-policy">
+    <div class="policy-header" onclick="togglePolicy('section-safe-links-built-in-protection-policy')">
+        <span class="policy-toggle-icon">&#9660;</span>
+        <span class="policy-title">Built-In Protection Policy</span>
+        <span class="pill policy-always-on">Policy Status: Always On</span>
+        <span class="pill priority">Priority: Lowest (Default)</span>
+        <span class="pill info">Standard: 7 / 10</span>
+        <span class="pill info">Strict: 7 / 10</span>
+    </div>
+    <div class="policy-content">
+        <div class="findings-table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Setting Name</th>
+                    <th>Current Value</th>
+                    <th>Recommended Standard Value</th>
+                    <th>Standard Status</th>
+                    <th>Recommended Strict Value</th>
+                    <th>Strict Status</th>
+                    <th>Reference</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+    <td>Safe Links checks a list of known, malicious links when users click links in email<br><span class="setting-param">(EnableSafeLinksForEmail)</span></td>
+    <td>true</td>
+    <td>true</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td>true</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#safe-links-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Safe Links checks a list of known, malicious links when users click links in Microsoft Teams<br><span class="setting-param">(EnableSafeLinksForTeams)</span></td>
+    <td>true</td>
+    <td>true</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td>true</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#safe-links-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Safe Links checks a list of known, malicious links when users click links in Microsoft Office apps<br><span class="setting-param">(EnableSafeLinksForOffice)</span></td>
+    <td>true</td>
+    <td>true</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td>true</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#safe-links-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Apply real-time URL scanning for suspicious links and links that point to files<br><span class="setting-param">(ScanUrls)</span></td>
+    <td>true</td>
+    <td>true</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td>true</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#safe-links-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Wait for URL scanning to complete before delivering the message<br><span class="setting-param">(DeliverMessageAfterScan)</span></td>
+    <td>true</td>
+    <td>true</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td>true</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#safe-links-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Do not rewrite URLs, do checks via Safe Links API only<br><span class="setting-param">(DisableURLRewrite)</span></td>
+    <td>true</td>
+    <td>false</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td>false</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#safe-links-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Apply Safe Links to email messages sent within the organization<br><span class="setting-param">(EnableForInternalSenders)</span></td>
+    <td>false</td>
+    <td>true</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td>true</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#safe-links-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Track user clicks<br><span class="setting-param">(TrackClicks)</span></td>
+    <td>true</td>
+    <td>true</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td>true</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#safe-links-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Let users click through to the original URL<br><span class="setting-param">(AllowClickThrough)</span></td>
+    <td>true</td>
+    <td>false</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td>false</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#safe-links-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Display the organization branding on notification and warning pages<br><span class="setting-param">(EnableOrganizationBranding)</span></td>
+    <td>false</td>
+    <td>false</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td>false</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#safe-links-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+            </tbody>
+        </table>
+        </div>
+    </div>
+</div>
+</section>
+<section class="detail-section" id="section-global-atp-settings" data-section="global-atp-settings">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h2>Global ATP Settings</h2>
+        <button type="button" class="export-btn" onclick="exportSectionToCsv('section-global-atp-settings')">&#128196; Export to Excel</button>
+    </div>
+    <div class="detail-meta">
+        <span class="pill success">&#10004; Matched = baseline met</span>
+        <span class="pill danger">&#10060; Not Matched = remediation advised</span>
+    </div>
+    <div class="policy-collapsible collapsed" id="section-global-atp-settings-default">
+    <div class="policy-header" onclick="togglePolicy('section-global-atp-settings-default')">
+        <span class="policy-toggle-icon">&#9660;</span>
+        <span class="policy-title">Default</span>
+        <span class="pill policy-always-on">Policy Status: Always On</span>
+        
+        <span class="pill info">Standard: 3 / 3</span>
+        <span class="pill info">Strict: 3 / 3</span>
+    </div>
+    <div class="policy-content">
+        <div class="findings-table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Setting Name</th>
+                    <th>Current Value</th>
+                    <th>Recommended Standard Value</th>
+                    <th>Standard Status</th>
+                    <th>Recommended Strict Value</th>
+                    <th>Strict Status</th>
+                    <th>Reference</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+    <td>Turn on Defender for Office 365 for SharePoint, OneDrive, and Microsoft Teams<br><span class="setting-param">(EnableATPForSPOTeamsODB)</span></td>
+    <td>true</td>
+    <td>true</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td>true</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#global-settings-for-safe-attachments" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Turn on Safe Documents for Office clients<br><span class="setting-param">(EnableSafeDocs)</span></td>
+    <td>true</td>
+    <td>true</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td>true</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#global-settings-for-safe-attachments" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Allow people to click through Protected View even if Safe Documents identified the file as malicious<br><span class="setting-param">(AllowSafeDocsOpen)</span></td>
+    <td>false</td>
+    <td>false</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td>false</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#global-settings-for-safe-attachments" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+            </tbody>
+        </table>
+        </div>
+    </div>
+</div>
+</section>
+                </div>
+            </section>
+
+            <section class="panel section-card detail-section" id="section-additional-security-checks" data-section="additional-security-checks">
+    <div class="section-header">
+        <div>
+            <h2>Additional Security Checks</h2>
+            <p>These findings go beyond the Microsoft baseline and highlight coverage gaps, bypass opportunities, and tenant-wide protection risks.</p>
+        </div>
+        <button type="button" class="export-btn" onclick="exportSectionToCsv('section-additional-security-checks')">&#128196; Export to Excel</button>
+    </div>
+    <div class="detail-meta">
+        <span class="pill success">Pass: 11</span>
+        <span class="pill warning">Warning: 18</span>
+        <span class="pill danger">Critical: 9</span>
+    </div>
+    <div class="findings-table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Category</th>
+                    <th>Check Name</th>
+                    <th>Status</th>
+                    <th>Details</th>
+                    <th>Recommendation</th>
+                    <th>Reference</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+    <td>Quarantine Policies</td>
+    <td>Referenced quarantine policies exist</td>
+    <td><span class="status-badge status-pass">&#10004; Pass</span></td>
+    <td>Validated 22 quarantine policy reference(s) against 3 existing quarantine policy object(s).</td>
+    <td>No action required unless you intended to use custom quarantine policies.</td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/quarantine-policies" target="_blank" rel="noopener noreferrer">Microsoft Docs</a></td>
+</tr>
+<tr>
+    <td>Rule Coverage</td>
+    <td>Anti-Phishing policy assignment</td>
+    <td><span class="status-badge status-warning">&#9888; Warning</span></td>
+    <td>Policy &quot;Custom_Anti-phishing&quot; is active, but its enabled rules are scoped and may leave parts of the organization uncovered. Enabled rules: Custom_Anti-phishing. Scoped conditions detected: SentTo = PeytonD@M365CPI14756130.OnMicrosoft.com.</td>
+    <td>Review Anti-Phishing rules for policy &quot;Custom_Anti-phishing&quot; and confirm whether the scoped assignments intentionally exclude users or domains.</td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/preset-security-policies" target="_blank" rel="noopener noreferrer">Microsoft Docs</a></td>
+</tr>
+<tr>
+    <td>Rule Coverage</td>
+    <td>Anti-Phishing policy assignment</td>
+    <td><span class="status-badge status-critical">&#10060; Critical</span></td>
+    <td>Policy &quot;Office365 AntiPhish Default&quot; has no enabled rule, so it is not actively protecting any recipients.</td>
+    <td>Create or enable a Anti-Phishing rule that targets the intended recipients for policy &quot;Office365 AntiPhish Default&quot;.</td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/preset-security-policies" target="_blank" rel="noopener noreferrer">Microsoft Docs</a></td>
+</tr>
+<tr>
+    <td>Rule Coverage</td>
+    <td>Inbound Anti-Spam policy assignment</td>
+    <td><span class="status-badge status-warning">&#9888; Warning</span></td>
+    <td>Policy &quot;Custom_inbound_Anti-Spam&quot; is active, but its enabled rules are scoped and may leave parts of the organization uncovered. Enabled rules: Custom_inbound_Anti-Spam. Scoped conditions detected: SentTo = MarioR@M365CPI14756130.OnMicrosoft.com; MonicaT@M365CPI14756130.OnMicrosoft.com.</td>
+    <td>Review Inbound Anti-Spam rules for policy &quot;Custom_inbound_Anti-Spam&quot; and confirm whether the scoped assignments intentionally exclude users or domains.</td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/preset-security-policies" target="_blank" rel="noopener noreferrer">Microsoft Docs</a></td>
+</tr>
+<tr>
+    <td>Rule Coverage</td>
+    <td>Inbound Anti-Spam policy assignment</td>
+    <td><span class="status-badge status-critical">&#10060; Critical</span></td>
+    <td>Policy &quot;Default&quot; has no enabled rule, so it is not actively protecting any recipients.</td>
+    <td>Create or enable a Inbound Anti-Spam rule that targets the intended recipients for policy &quot;Default&quot;.</td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/preset-security-policies" target="_blank" rel="noopener noreferrer">Microsoft Docs</a></td>
+</tr>
+<tr>
+    <td>Rule Coverage</td>
+    <td>Outbound Anti-Spam policy assignment</td>
+    <td><span class="status-badge status-warning">&#9888; Warning</span></td>
+    <td>Policy &quot;Custom_Outbound_Antu-Spam&quot; is active, but its enabled rules are scoped and may leave parts of the organization uncovered. Enabled rules: Custom_Outbound_Antu-Spam. Scoped conditions detected: From = KaiC@M365CPI14756130.OnMicrosoft.com.</td>
+    <td>Review Outbound Anti-Spam rules for policy &quot;Custom_Outbound_Antu-Spam&quot; and confirm whether the scoped assignments intentionally exclude users or domains.</td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/preset-security-policies" target="_blank" rel="noopener noreferrer">Microsoft Docs</a></td>
+</tr>
+<tr>
+    <td>Rule Coverage</td>
+    <td>Outbound Anti-Spam policy assignment</td>
+    <td><span class="status-badge status-critical">&#10060; Critical</span></td>
+    <td>Policy &quot;Default&quot; has no enabled rule, so it is not actively protecting any recipients.</td>
+    <td>Create or enable a Outbound Anti-Spam rule that targets the intended recipients for policy &quot;Default&quot;.</td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/preset-security-policies" target="_blank" rel="noopener noreferrer">Microsoft Docs</a></td>
+</tr>
+<tr>
+    <td>Rule Coverage</td>
+    <td>Anti-Malware policy assignment</td>
+    <td><span class="status-badge status-warning">&#9888; Warning</span></td>
+    <td>Policy &quot;Custom_Anti-malware&quot; is active, but its enabled rules are scoped and may leave parts of the organization uncovered. Enabled rules: Custom_Anti-malware. Scoped conditions detected: SentTo = PeytonD@M365CPI14756130.OnMicrosoft.com.</td>
+    <td>Review Anti-Malware rules for policy &quot;Custom_Anti-malware&quot; and confirm whether the scoped assignments intentionally exclude users or domains.</td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/preset-security-policies" target="_blank" rel="noopener noreferrer">Microsoft Docs</a></td>
+</tr>
+<tr>
+    <td>Rule Coverage</td>
+    <td>Anti-Malware policy assignment</td>
+    <td><span class="status-badge status-critical">&#10060; Critical</span></td>
+    <td>Policy &quot;Default&quot; has no enabled rule, so it is not actively protecting any recipients.</td>
+    <td>Create or enable a Anti-Malware rule that targets the intended recipients for policy &quot;Default&quot;.</td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/preset-security-policies" target="_blank" rel="noopener noreferrer">Microsoft Docs</a></td>
+</tr>
+<tr>
+    <td>Rule Coverage</td>
+    <td>Safe Attachments rule coverage</td>
+    <td><span class="status-badge status-warning">&#9888; Warning</span></td>
+    <td>No Safe Attachments rules were collected, so policy assignments and coverage gaps could not be validated.</td>
+    <td>Confirm the related rule cmdlet is available and rerun the assessment before treating these policies as unassigned.</td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/preset-security-policies" target="_blank" rel="noopener noreferrer">Microsoft Docs</a></td>
+</tr>
+<tr>
+    <td>Rule Coverage</td>
+    <td>Safe Links rule coverage</td>
+    <td><span class="status-badge status-warning">&#9888; Warning</span></td>
+    <td>No Safe Links rules were collected, so policy assignments and coverage gaps could not be validated.</td>
+    <td>Confirm the related rule cmdlet is available and rerun the assessment before treating these policies as unassigned.</td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/preset-security-policies" target="_blank" rel="noopener noreferrer">Microsoft Docs</a></td>
+</tr>
+<tr>
+    <td>Preset Security Policies</td>
+    <td>EOP preset policies - Standard</td>
+    <td><span class="status-badge status-warning">&#9888; Warning</span></td>
+    <td>No Standard rule was detected in EOP preset policies.</td>
+    <td>If you intend to rely on Microsoft preset security policies, enable the Standard preset policy and confirm its scope.</td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/preset-security-policies" target="_blank" rel="noopener noreferrer">Microsoft Docs</a></td>
+</tr>
+<tr>
+    <td>Preset Security Policies</td>
+    <td>EOP preset policies - Strict</td>
+    <td><span class="status-badge status-warning">&#9888; Warning</span></td>
+    <td>No Strict rule was detected in EOP preset policies.</td>
+    <td>If you intend to rely on Microsoft preset security policies, enable the Strict preset policy and confirm its scope.</td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/preset-security-policies" target="_blank" rel="noopener noreferrer">Microsoft Docs</a></td>
+</tr>
+<tr>
+    <td>Preset Security Policies</td>
+    <td>ATP preset policies - Standard</td>
+    <td><span class="status-badge status-warning">&#9888; Warning</span></td>
+    <td>No Standard rule was detected in ATP preset policies.</td>
+    <td>If you intend to rely on Microsoft preset security policies, enable the Standard preset policy and confirm its scope.</td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/preset-security-policies" target="_blank" rel="noopener noreferrer">Microsoft Docs</a></td>
+</tr>
+<tr>
+    <td>Preset Security Policies</td>
+    <td>ATP preset policies - Strict</td>
+    <td><span class="status-badge status-warning">&#9888; Warning</span></td>
+    <td>No Strict rule was detected in ATP preset policies.</td>
+    <td>If you intend to rely on Microsoft preset security policies, enable the Strict preset policy and confirm its scope.</td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/preset-security-policies" target="_blank" rel="noopener noreferrer">Microsoft Docs</a></td>
+</tr>
+<tr>
+    <td>Policy Priority</td>
+    <td>Anti-Phishing priority order</td>
+    <td><span class="status-badge status-pass">&#10004; Pass</span></td>
+    <td>Priority order reviewed: Custom_Anti-phishing (priority 0, standard score 20%); Office365 AntiPhish Default (no enabled rule, standard score 40%, default/built-in).</td>
+    <td>No action required unless policy precedence should be adjusted for business scope.</td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/preset-security-policies#order-of-precedence-for-preset-security-policies-and-other-policies" target="_blank" rel="noopener noreferrer">Microsoft Docs</a></td>
+</tr>
+<tr>
+    <td>Policy Priority</td>
+    <td>Inbound Anti-Spam priority order</td>
+    <td><span class="status-badge status-pass">&#10004; Pass</span></td>
+    <td>Priority order reviewed: Custom_inbound_Anti-Spam (priority 0, standard score 30%); Default (no enabled rule, standard score 60%, default/built-in).</td>
+    <td>No action required unless policy precedence should be adjusted for business scope.</td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/preset-security-policies#order-of-precedence-for-preset-security-policies-and-other-policies" target="_blank" rel="noopener noreferrer">Microsoft Docs</a></td>
+</tr>
+<tr>
+    <td>Policy Priority</td>
+    <td>Outbound Anti-Spam priority order</td>
+    <td><span class="status-badge status-pass">&#10004; Pass</span></td>
+    <td>Priority order reviewed: Custom_Outbound_Antu-Spam (priority 0, standard score 57%); Default (no enabled rule, standard score 43%, default/built-in).</td>
+    <td>No action required unless policy precedence should be adjusted for business scope.</td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/preset-security-policies#order-of-precedence-for-preset-security-policies-and-other-policies" target="_blank" rel="noopener noreferrer">Microsoft Docs</a></td>
+</tr>
+<tr>
+    <td>Policy Priority</td>
+    <td>Anti-Malware priority order</td>
+    <td><span class="status-badge status-pass">&#10004; Pass</span></td>
+    <td>Priority order reviewed: Custom_Anti-malware (priority 0, standard score 50%); Default (no enabled rule, standard score 100%, default/built-in).</td>
+    <td>No action required unless policy precedence should be adjusted for business scope.</td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/preset-security-policies#order-of-precedence-for-preset-security-policies-and-other-policies" target="_blank" rel="noopener noreferrer">Microsoft Docs</a></td>
+</tr>
+<tr>
+    <td>Email Authentication</td>
+    <td>DKIM coverage for accepted domains</td>
+    <td><span class="status-badge status-critical">&#10060; Critical</span></td>
+    <td>DKIM is not fully enabled for all accepted domains. Gaps detected: m365cpi14756130.onmicrosoft.com (no DKIM config found).</td>
+    <td>Enable DKIM signing for every accepted domain that sends mail from Microsoft 365.</td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/email-authentication-about" target="_blank" rel="noopener noreferrer">Microsoft Docs</a></td>
+</tr>
+<tr>
+    <td>Email Authentication</td>
+    <td>DMARC handling posture</td>
+    <td><span class="status-badge status-pass">&#10004; Pass</span></td>
+    <td>Preferred anti-phishing policy &quot;Office365 AntiPhish Default&quot; honors DMARC and uses Quarantine/Reject actions for DMARC verdicts.</td>
+    <td>No action required.</td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/email-authentication-about" target="_blank" rel="noopener noreferrer">Microsoft Docs</a></td>
+</tr>
+<tr>
+    <td>Transport Rules</td>
+    <td>Security bypass detection</td>
+    <td><span class="status-badge status-pass">&#10004; Pass</span></td>
+    <td>No enabled transport rules were collected, so no obvious bypass patterns were found.</td>
+    <td>No action required.</td>
+    <td><a href="https://learn.microsoft.com/exchange/security-and-compliance/mail-flow-rules/mail-flow-rules" target="_blank" rel="noopener noreferrer">Microsoft Docs</a></td>
+</tr>
+<tr>
+    <td>Inbound Connectors</td>
+    <td>Connector security validation</td>
+    <td><span class="status-badge status-pass">&#10004; Pass</span></td>
+    <td>No inbound connectors were collected.</td>
+    <td>No action required unless inbound connectors are expected in this tenant.</td>
+    <td><a href="https://learn.microsoft.com/exchange/mail-flow-best-practices/use-connectors-to-configure-mail-flow/use-connectors-to-configure-mail-flow" target="_blank" rel="noopener noreferrer">Microsoft Docs</a></td>
+</tr>
+<tr>
+    <td>Tenant Allow/Block List</td>
+    <td>Sender list retrieval</td>
+    <td><span class="status-badge status-warning">&#9888; Warning</span></td>
+    <td>Unable to retrieve sender allow/block list entries: Value cannot be null.
+Parameter name: exchangeConfigUnit</td>
+    <td>Verify Defender for Office 365 permissions and rerun the audit.</td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/tenant-allow-block-list-about" target="_blank" rel="noopener noreferrer">Microsoft Docs</a></td>
+</tr>
+<tr>
+    <td>Tenant Allow/Block List</td>
+    <td>Url list retrieval</td>
+    <td><span class="status-badge status-warning">&#9888; Warning</span></td>
+    <td>Unable to retrieve url allow/block list entries: Value cannot be null.
+Parameter name: exchangeConfigUnit</td>
+    <td>Verify Defender for Office 365 permissions and rerun the audit.</td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/tenant-allow-block-list-about" target="_blank" rel="noopener noreferrer">Microsoft Docs</a></td>
+</tr>
+<tr>
+    <td>Tenant Allow/Block List</td>
+    <td>FileHash list retrieval</td>
+    <td><span class="status-badge status-warning">&#9888; Warning</span></td>
+    <td>Unable to retrieve filehash allow/block list entries: Value cannot be null.
+Parameter name: exchangeConfigUnit</td>
+    <td>Verify Defender for Office 365 permissions and rerun the audit.</td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/tenant-allow-block-list-about" target="_blank" rel="noopener noreferrer">Microsoft Docs</a></td>
+</tr>
+<tr>
+    <td>Advanced Delivery</td>
+    <td>SecOps mailboxes via Advanced Delivery</td>
+    <td><span class="status-badge status-warning">&#9888; Warning</span></td>
+    <td>No SecOps mailboxes found in Advanced Delivery policies.</td>
+    <td>Configure SecOps mailboxes in Advanced Delivery if your investigation team requires unfiltered mail delivery.</td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/advanced-delivery-policy-configure" target="_blank" rel="noopener noreferrer">Microsoft Docs</a></td>
+</tr>
+<tr>
+    <td>Advanced Delivery</td>
+    <td>Phishing simulation Advanced Delivery</td>
+    <td><span class="status-badge status-warning">&#9888; Warning</span></td>
+    <td>No phishing simulation Advanced Delivery entries found.</td>
+    <td>Configure phishing simulation URLs in Advanced Delivery instead of bypassing protections with transport rules.</td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/advanced-delivery-policy-configure" target="_blank" rel="noopener noreferrer">Microsoft Docs</a></td>
+</tr>
+<tr>
+    <td>Audit Logging</td>
+    <td>Unified audit log enabled</td>
+    <td><span class="status-badge status-critical">&#10060; Critical</span></td>
+    <td>Unified audit log ingestion is disabled, which severely hampers security incident investigation.</td>
+    <td>Enable unified audit logging to preserve mailbox and security event telemetry.</td>
+    <td><a href="https://learn.microsoft.com/purview/audit-log-enable-disable" target="_blank" rel="noopener noreferrer">Microsoft Docs</a></td>
+</tr>
+<tr>
+    <td>ATP Coverage</td>
+    <td>Safe Attachments rule coverage</td>
+    <td><span class="status-badge status-critical">&#10060; Critical</span></td>
+    <td>No enabled Safe Attachments rules found. Tenant-wide coverage cannot be assumed.</td>
+    <td>Create at least one enabled Safe Attachments rule that covers all intended recipients.</td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/safe-links-about" target="_blank" rel="noopener noreferrer">Microsoft Docs</a></td>
+</tr>
+<tr>
+    <td>ATP Coverage</td>
+    <td>Safe Links rule coverage</td>
+    <td><span class="status-badge status-critical">&#10060; Critical</span></td>
+    <td>No enabled Safe Links rules found. Tenant-wide coverage cannot be assumed.</td>
+    <td>Create at least one enabled Safe Links rule that covers all intended recipients.</td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/safe-links-about" target="_blank" rel="noopener noreferrer">Microsoft Docs</a></td>
+</tr>
+<tr>
+    <td>Zero-Hour Auto Purge</td>
+    <td>Inbound spam ZAP - Custom_inbound_Anti-Spam</td>
+    <td><span class="status-badge status-critical">&#10060; Critical</span></td>
+    <td>Policy &quot;Custom_inbound_Anti-Spam&quot; has both SpamZapEnabled and PhishZapEnabled disabled.</td>
+    <td>Enable both spam and phish ZAP to improve post-delivery remediation.</td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/zero-hour-auto-purge" target="_blank" rel="noopener noreferrer">Microsoft Docs</a></td>
+</tr>
+<tr>
+    <td>Zero-Hour Auto Purge</td>
+    <td>Inbound spam ZAP - Default</td>
+    <td><span class="status-badge status-pass">&#10004; Pass</span></td>
+    <td>Policy &quot;Default&quot; has spam and phish ZAP enabled.</td>
+    <td>Keep ZAP enabled for post-delivery remediation.</td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/zero-hour-auto-purge" target="_blank" rel="noopener noreferrer">Microsoft Docs</a></td>
+</tr>
+<tr>
+    <td>Zero-Hour Auto Purge</td>
+    <td>Malware ZAP - Custom_Anti-malware</td>
+    <td><span class="status-badge status-warning">&#9888; Warning</span></td>
+    <td>Policy &quot;Custom_Anti-malware&quot; has ZapEnabled disabled.</td>
+    <td>Enable ZapEnabled in anti-malware policies for post-delivery malware remediation.</td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/zero-hour-auto-purge" target="_blank" rel="noopener noreferrer">Microsoft Docs</a></td>
+</tr>
+<tr>
+    <td>Zero-Hour Auto Purge</td>
+    <td>Malware ZAP - Default</td>
+    <td><span class="status-badge status-pass">&#10004; Pass</span></td>
+    <td>Policy &quot;Default&quot; has ZAP enabled.</td>
+    <td>Continue using malware ZAP for rapid cleanup.</td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/zero-hour-auto-purge" target="_blank" rel="noopener noreferrer">Microsoft Docs</a></td>
+</tr>
+<tr>
+    <td>Outbound Spam Notifications</td>
+    <td>Notification config - Custom_Outbound_Antu-Spam</td>
+    <td><span class="status-badge status-warning">&#9888; Warning</span></td>
+    <td>Policy &quot;Custom_Outbound_Antu-Spam&quot; does not have Bcc or notification settings configured for outbound spam.</td>
+    <td>Configure BccSuspiciousOutboundMail or NotifyOutboundSpam for outbound spam events.</td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/outbound-spam-policies-configure" target="_blank" rel="noopener noreferrer">Microsoft Docs</a></td>
+</tr>
+<tr>
+    <td>Outbound Spam Notifications</td>
+    <td>Notification config - Default</td>
+    <td><span class="status-badge status-warning">&#9888; Warning</span></td>
+    <td>Policy &quot;Default&quot; does not have Bcc or notification settings configured for outbound spam.</td>
+    <td>Configure BccSuspiciousOutboundMail or NotifyOutboundSpam for outbound spam events.</td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/outbound-spam-policies-configure" target="_blank" rel="noopener noreferrer">Microsoft Docs</a></td>
+</tr>
+<tr>
+    <td>Outbound Spam Notifications</td>
+    <td>Alert policy coverage</td>
+    <td><span class="status-badge status-pass">&#10004; Pass</span></td>
+    <td>Found 7 alert policy(ies) related to outbound spam or restricted users.</td>
+    <td>Confirm those alerts are routed to an actively monitored team mailbox.</td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/outbound-spam-policies-configure" target="_blank" rel="noopener noreferrer">Microsoft Docs</a></td>
+</tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-inner">
+            <div class="footer-title">MDO Threat Policy Analyzer</div>
+            <div class="footer-date">Report generated at 2026-07-26 17:45:22</div>
+            <div class="footer-disclaimer">This assessment reflects configuration state at the time of collection and should be reviewed alongside operational context, compensating controls, and Microsoft guidance before final risk decisions are made.</div>
+        </div>
+    </footer>
+
+    <script>
+        function exportSectionToCsv(sectionId) {
+            var section = document.getElementById(sectionId);
+            if (!section) return;
+            var tables = section.querySelectorAll('table');
+            if (tables.length === 0) return;
+            var csvRows = [];
+            var headerAdded = false;
+            var includePolicyName = (sectionId !== 'section-additional-security-checks');
+            var forceSkipReference = (sectionId === 'section-additional-security-checks');
+            for (var t = 0; t < tables.length; t++) {
+                var policyBlock = tables[t].closest('.policy-collapsible');
+                var policyName = policyBlock ? (policyBlock.querySelector('.policy-title') || {}).innerText || '' : '';
+                var headers = tables[t].querySelectorAll('th');
+                var skipLast = forceSkipReference || (headers.length > 0 && headers[headers.length - 1].innerText.trim() === 'Reference');
+                var rows = tables[t].querySelectorAll('tr');
+                for (var i = 0; i < rows.length; i++) {
+                    var cells = rows[i].querySelectorAll('th, td');
+                    if (cells.length === 0) continue;
+                    var colCount = skipLast ? cells.length - 1 : cells.length;
+                    if (rows[i].querySelectorAll('th').length > 0) {
+                        if (!headerAdded) {
+                            var headerData = includePolicyName ? ['"Policy Name"'] : [];
+                            for (var j = 0; j < colCount; j++) {
+                                headerData.push('"' + cells[j].innerText.replace(/"/g, '""').trim() + '"');
+                            }
+                            csvRows.push(headerData.join(','));
+                            headerAdded = true;
+                        }
+                        continue;
+                    }
+                    var rowData = includePolicyName ? ['"' + policyName.replace(/"/g, '""') + '"'] : [];
+                    for (var j = 0; j < colCount; j++) {
+                        var text = cells[j].innerText.replace(/"/g, '""').replace(/\n/g, ' ').trim();
+                        rowData.push('"' + text + '"');
+                    }
+                    csvRows.push(rowData.join(','));
+                }
+            }
+            if (csvRows.length === 0) return;
+            var csvContent = '\uFEFF' + csvRows.join('\n');
+            var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            var link = document.createElement('a');
+            var sectionTitle = section.querySelector('h2, h3') || { innerText: sectionId };
+            var fileName = (sectionTitle.innerText || sectionId).replace(/[^a-z0-9]/gi, '_') + '.csv';
+            link.href = URL.createObjectURL(blob);
+            link.download = fileName;
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        function exportAllToExcel() {
+            function cellText(el) {
+                return (el && el.textContent ? el.textContent : '').replace(/\s+/g, ' ').trim();
+            }
+            function xmlEsc(s) {
+                return String(s == null ? '' : s)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;');
+            }
+            function textCell(v) {
+                var s = String(v == null ? '' : v);
+                if (s.length && '=+-@\t\r'.indexOf(s.charAt(0)) !== -1) { s = "'" + s; }
+                return '<Cell><Data ss:Type="String">' + xmlEsc(s) + '</Data></Cell>';
+            }
+            function headerCell(v) {
+                return '<Cell ss:StyleID="hdr"><Data ss:Type="String">' + xmlEsc(v) + '</Data></Cell>';
+            }
+            function linkCell(url, label) {
+                url = (url || '').trim();
+                if (!url) { return textCell(label || ''); }
+                return '<Cell ss:StyleID="lnk" ss:HRef="' + xmlEsc(url) + '"><Data ss:Type="String">' + xmlEsc(label || url) + '</Data></Cell>';
+            }
+            function getRef(cell) {
+                if (!cell) { return { url: '', label: '' }; }
+                var a = cell.querySelector('a');
+                if (a) { return { url: a.getAttribute('href') || '', label: cellText(a) || 'Reference' }; }
+                return { url: '', label: cellText(cell) };
+            }
+
+            // Sheet 1: Detailed Findings (7 policy columns + Category + Policy Name)
+            var detailRows = ['<Row>' +
+                headerCell('Category') + headerCell('Policy Name') + headerCell('Setting Name') +
+                headerCell('Current Value') + headerCell('Recommended Standard Value') + headerCell('Standard Status') +
+                headerCell('Recommended Strict Value') + headerCell('Strict Status') + headerCell('Reference') + '</Row>'];
+            var detailSections = document.querySelectorAll('.detail-section');
+            for (var s = 0; s < detailSections.length; s++) {
+                if (detailSections[s].id === 'section-additional-security-checks') { continue; }
+                var sTitle = detailSections[s].querySelector('h2, h3');
+                var sectionName = sTitle ? cellText(sTitle) : 'Unknown';
+                var tables = detailSections[s].querySelectorAll('table');
+                for (var t = 0; t < tables.length; t++) {
+                    var policyBlock = tables[t].closest('.policy-collapsible');
+                    var policyName = policyBlock ? cellText(policyBlock.querySelector('.policy-title')) : '';
+                    var rows = tables[t].querySelectorAll('tbody tr');
+                    for (var i = 0; i < rows.length; i++) {
+                        var cells = rows[i].querySelectorAll('td');
+                        if (cells.length === 0) { continue; }
+                        var ref = getRef(cells[cells.length - 1]);
+                        var rowXml = '<Row>' + textCell(sectionName) + textCell(policyName);
+                        for (var j = 0; j < cells.length - 1; j++) { rowXml += textCell(cellText(cells[j])); }
+                        rowXml += linkCell(ref.url, ref.label || 'Microsoft Learn') + '</Row>';
+                        detailRows.push(rowXml);
+                    }
+                }
+            }
+
+            // Sheet 2: Additional Security Checks (dedicated columns + clickable Reference)
+            var addlRows = ['<Row>' +
+                headerCell('Category') + headerCell('Check Name') + headerCell('Status') +
+                headerCell('Details') + headerCell('Recommendation') + headerCell('Reference') + '</Row>'];
+            var addlSection = document.getElementById('section-additional-security-checks');
+            if (addlSection) {
+                var addlTables = addlSection.querySelectorAll('table');
+                for (var at = 0; at < addlTables.length; at++) {
+                    var arows = addlTables[at].querySelectorAll('tbody tr');
+                    for (var k = 0; k < arows.length; k++) {
+                        var acells = arows[k].querySelectorAll('td');
+                        if (acells.length === 0) { continue; }
+                        var aref = getRef(acells[acells.length - 1]);
+                        var arowXml = '<Row>';
+                        for (var m = 0; m < acells.length - 1; m++) { arowXml += textCell(cellText(acells[m])); }
+                        arowXml += linkCell(aref.url, aref.label || 'Microsoft Docs') + '</Row>';
+                        addlRows.push(arowXml);
+                    }
+                }
+            }
+
+            var workbook =
+                '<?xml version="1.0"?>\r\n' +
+                '<?mso-application progid="Excel.Sheet"?>\r\n' +
+                '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"' +
+                ' xmlns:o="urn:schemas-microsoft-com:office:office"' +
+                ' xmlns:x="urn:schemas-microsoft-com:office:excel"' +
+                ' xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"' +
+                ' xmlns:html="http://www.w3.org/TR/REC-html40">' +
+                '<Styles>' +
+                '<Style ss:ID="hdr"><Font ss:Bold="1"/><Interior ss:Color="#DDEBF7" ss:Pattern="Solid"/></Style>' +
+                '<Style ss:ID="lnk"><Font ss:Color="#0563C1" ss:Underline="Single"/></Style>' +
+                '</Styles>' +
+                '<Worksheet ss:Name="Detailed Findings"><Table>' + detailRows.join('') + '</Table></Worksheet>' +
+                '<Worksheet ss:Name="Additional Security Checks"><Table>' + addlRows.join('') + '</Table></Worksheet>' +
+                '</Workbook>';
+
+            var blob = new Blob([workbook], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+            var link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'MDO_Full_Report.xls';
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        function togglePolicy(policyId) {
+            var el = document.getElementById(policyId);
+            if (el) el.classList.toggle('collapsed');
+        }
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+            document.getElementById('sidebarOverlay').classList.toggle('open');
+        }
+
+        function scrollToSection(sectionId, el) {
+            var target = document.getElementById(sectionId);
+            if (target) {
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+            var items = document.querySelectorAll('#categoryNav .sidebar-item');
+            items.forEach(function(i) { i.classList.remove('active'); });
+            if (el) el.classList.add('active');
+            if (window.innerWidth <= 1120) toggleSidebar();
+        }
+
+        (function () {
+            var sections = Array.prototype.slice.call(document.querySelectorAll('[id^="section-"]'));
+            var observer = new IntersectionObserver(function(entries) {
+                entries.forEach(function(entry) {
+                    if (entry.isIntersecting) {
+                        var id = entry.target.id;
+                        var items = document.querySelectorAll('#categoryNav .sidebar-item');
+                        items.forEach(function(i) { i.classList.remove('active'); });
+                        var activeLink = document.querySelector('#categoryNav .sidebar-item[href="#' + id + '"]');
+                        if (activeLink) activeLink.classList.add('active');
+                    }
+                });
+            }, { threshold: 0.2 });
+            sections.forEach(function(s) { observer.observe(s); });
+
+            var cardButtons = Array.prototype.slice.call(document.querySelectorAll("[data-open-section]"));
+            cardButtons.forEach(function(button) {
+                button.addEventListener("click", function() {
+                    var target = button.getAttribute("data-open-section");
+                    var section = document.getElementById("section-" + target);
+                    if (section) section.scrollIntoView({ behavior: "smooth", block: "start" });
+                });
+            });
+
+            document.addEventListener("click", function(event) {
+                var trigger = event.target.closest("[data-collapse-target]");
+                if (!trigger) return;
+                var targetId = trigger.getAttribute("data-collapse-target");
+                if (!targetId) return;
+                var section = document.getElementById(targetId);
+                if (!section) return;
+                var collapsed = section.classList.toggle("collapsed");
+                trigger.setAttribute("aria-expanded", String(!collapsed));
+            });
+        }());
+    </script>
+</body>
+</html>
