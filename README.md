@@ -42,12 +42,6 @@ Assess Microsoft Defender for Office 365 (MDO) threat protection settings agains
   Disconnect-ExchangeOnline -Confirm:$false
   ```
 
-- **Integrity** — the script is Authenticode signed for tamper detection. Verify the signature before running (Subject `CN=AbdullahZmailiCodeSigningMDOThreatPolicyAnalyzer`, Thumbprint `697A6E565CD9B3B93E3CD2435B8AFE1A24D99672`):
-
-  ```powershell
-  Get-AuthenticodeSignature .\MDOThreatPolicyAnalyzer.ps1
-  ```
-
 ## Quick Install / Usage
 
 ```powershell
