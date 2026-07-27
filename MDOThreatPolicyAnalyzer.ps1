@@ -136,6 +136,15 @@ $RecommendedBaselines = [ordered]@{
             HonorDmarcPolicy = @{ Standard = $true; Strict = $true }
             DmarcQuarantineAction = @{ Standard = 'Quarantine'; Strict = 'Quarantine' }
             DmarcRejectAction = @{ Standard = 'Reject'; Strict = 'Reject' }
+            EnableTargetedUserProtection = @{ Standard = $true; Strict = $true }
+            EnableTargetedDomainsProtection = @{ Standard = $true; Strict = $true }
+            EnableOrganizationDomainsProtection = @{ Standard = $true; Strict = $true }
+            EnableUnauthenticatedSender = @{ Standard = $true; Strict = $true }
+            EnableViaTag = @{ Standard = $true; Strict = $true }
+            SpoofQuarantineTag = @{ Standard = 'DefaultFullAccessPolicy'; Strict = 'DefaultFullAccessWithNotificationPolicy' }
+            TargetedUserQuarantineTag = @{ Standard = 'DefaultFullAccessWithNotificationPolicy'; Strict = 'DefaultFullAccessWithNotificationPolicy' }
+            TargetedDomainQuarantineTag = @{ Standard = 'DefaultFullAccessWithNotificationPolicy'; Strict = 'DefaultFullAccessWithNotificationPolicy' }
+            MailboxIntelligenceQuarantineTag = @{ Standard = 'DefaultFullAccessPolicy'; Strict = 'DefaultFullAccessWithNotificationPolicy' }
         }
     }
     AntiSpamInbound = @{
@@ -152,6 +161,30 @@ $RecommendedBaselines = [ordered]@{
             InlineSafetyTipsEnabled = @{ Standard = $true; Strict = $true }
             SpamZapEnabled = @{ Standard = $true; Strict = $true }
             PhishZapEnabled = @{ Standard = $true; Strict = $true }
+            MarkAsSpamBulkMail = @{ Standard = 'On'; Strict = 'On' }
+            IntraOrgFilterState = @{ Standard = 'Default'; Strict = 'Default' }
+            BulkMovesEnabled = @{ Standard = 'NotSet'; Strict = 'NotSet' }
+            SpamQuarantineTag = @{ Standard = 'DefaultFullAccessPolicy'; Strict = 'DefaultFullAccessWithNotificationPolicy' }
+            HighConfidenceSpamQuarantineTag = @{ Standard = 'DefaultFullAccessWithNotificationPolicy'; Strict = 'DefaultFullAccessWithNotificationPolicy' }
+            PhishQuarantineTag = @{ Standard = 'DefaultFullAccessWithNotificationPolicy'; Strict = 'DefaultFullAccessWithNotificationPolicy' }
+            HighConfidencePhishQuarantineTag = @{ Standard = 'AdminOnlyAccessPolicy'; Strict = 'AdminOnlyAccessPolicy' }
+            BulkQuarantineTag = @{ Standard = 'DefaultFullAccessPolicy'; Strict = 'DefaultFullAccessWithNotificationPolicy' }
+            IncreaseScoreWithImageLinks = @{ Standard = 'Off'; Strict = 'Off' }
+            IncreaseScoreWithNumericIps = @{ Standard = 'Off'; Strict = 'Off' }
+            IncreaseScoreWithRedirectToOtherPort = @{ Standard = 'Off'; Strict = 'Off' }
+            IncreaseScoreWithBizOrInfoUrls = @{ Standard = 'Off'; Strict = 'Off' }
+            MarkAsSpamEmptyMessages = @{ Standard = 'Off'; Strict = 'Off' }
+            MarkAsSpamEmbedTagsInHtml = @{ Standard = 'Off'; Strict = 'Off' }
+            MarkAsSpamJavaScriptInHtml = @{ Standard = 'Off'; Strict = 'Off' }
+            MarkAsSpamFormTagsInHtml = @{ Standard = 'Off'; Strict = 'Off' }
+            MarkAsSpamFramesInHtml = @{ Standard = 'Off'; Strict = 'Off' }
+            MarkAsSpamWebBugsInHtml = @{ Standard = 'Off'; Strict = 'Off' }
+            MarkAsSpamObjectTagsInHtml = @{ Standard = 'Off'; Strict = 'Off' }
+            MarkAsSpamSensitiveWordList = @{ Standard = 'Off'; Strict = 'Off' }
+            MarkAsSpamSpfRecordHardFail = @{ Standard = 'Off'; Strict = 'Off' }
+            MarkAsSpamFromAddressAuthFail = @{ Standard = 'Off'; Strict = 'Off' }
+            MarkAsSpamNdrBackscatter = @{ Standard = 'Off'; Strict = 'Off' }
+            TestModeAction = @{ Standard = 'None'; Strict = 'None' }
         }
     }
     AntiSpamOutbound = @{
@@ -238,6 +271,30 @@ $SecurityFeatureNames = @{
     InlineSafetyTipsEnabled                 = 'Enable spam safety tips'
     SpamZapEnabled                          = 'Enable ZAP for spam messages'
     PhishZapEnabled                         = 'Enable zero-hour auto purge (ZAP) for phishing messages'
+    MarkAsSpamBulkMail                      = 'Bulk email spam'
+    IntraOrgFilterState                     = 'Intra-Organizational messages to take action on'
+    BulkMovesEnabled                        = 'Bulk moves enabled'
+    SpamQuarantineTag                       = 'Quarantine policy for Spam'
+    HighConfidenceSpamQuarantineTag         = 'Quarantine policy for High confidence spam'
+    PhishQuarantineTag                      = 'Quarantine policy for Phishing'
+    HighConfidencePhishQuarantineTag        = 'Quarantine policy for High confidence phishing'
+    BulkQuarantineTag                       = 'Quarantine policy for Bulk compliant level (BCL) met or exceeded'
+    IncreaseScoreWithImageLinks             = 'ASF: Image links to remote sites'
+    IncreaseScoreWithNumericIps             = 'ASF: Numeric IP address in URL'
+    IncreaseScoreWithRedirectToOtherPort    = 'ASF: URL redirect to other port'
+    IncreaseScoreWithBizOrInfoUrls          = 'ASF: Links to .biz or .info websites'
+    MarkAsSpamEmptyMessages                 = 'ASF: Empty messages'
+    MarkAsSpamEmbedTagsInHtml               = 'ASF: Embed tags in HTML'
+    MarkAsSpamJavaScriptInHtml              = 'ASF: JavaScript or VBScript in HTML'
+    MarkAsSpamFormTagsInHtml                = 'ASF: Form tags in HTML'
+    MarkAsSpamFramesInHtml                  = 'ASF: Frame or iframe tags in HTML'
+    MarkAsSpamWebBugsInHtml                 = 'ASF: Web bugs in HTML'
+    MarkAsSpamObjectTagsInHtml              = 'ASF: Object tags in HTML'
+    MarkAsSpamSensitiveWordList             = 'ASF: Sensitive words'
+    MarkAsSpamSpfRecordHardFail             = 'ASF: SPF record hard fail'
+    MarkAsSpamFromAddressAuthFail           = 'ASF: Sender ID filtering hard fail'
+    MarkAsSpamNdrBackscatter                = 'ASF: Backscatter'
+    TestModeAction                          = 'ASF: Test mode'
 
     # Anti-Spam (Outbound)
     RecipientLimitExternalPerHour           = 'Set an external message limit'
@@ -264,6 +321,15 @@ $SecurityFeatureNames = @{
     HonorDmarcPolicy                        = 'Honor DMARC record policy when the message is detected as spoof'
     DmarcQuarantineAction                   = 'If the message is detected as spoof and DMARC Policy is set as p=quarantine'
     DmarcRejectAction                       = 'If the message is detected as spoof and DMARC Policy is set as p=reject'
+    EnableTargetedUserProtection            = 'User impersonation protection: Enable users to protect'
+    EnableTargetedDomainsProtection         = 'Domain impersonation protection: Include custom domains'
+    EnableOrganizationDomainsProtection     = 'Domain impersonation protection: Include domains I own'
+    EnableUnauthenticatedSender             = 'Show (?) for unauthenticated senders for spoof'
+    EnableViaTag                            = 'Show "via" tag'
+    SpoofQuarantineTag                      = 'Quarantine policy for Spoof'
+    TargetedUserQuarantineTag               = 'Quarantine policy for user impersonation'
+    TargetedDomainQuarantineTag             = 'Quarantine policy for domain impersonation'
+    MailboxIntelligenceQuarantineTag        = 'Quarantine policy for mailbox intelligence impersonation'
 
     # Safe Attachments
     Action                                  = 'Safe Attachments unknown malware response'
