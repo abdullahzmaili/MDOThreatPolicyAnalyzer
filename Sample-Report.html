@@ -6,21 +6,21 @@
     <title>Contoso - MDO Assessment Report</title>
     <style>
         :root {
-            --ms-blue: #0f6cbd;
-            --ms-blue-dark: #0b3b69;
-            --header-dark: #111827;
+            --accent: #147d73;
+            --accent-dark: #18534d;
+            --header-dark: #23282d;
             --surface: #ffffff;
             --surface-alt: #f5f7fb;
             --surface-muted: #eef2f7;
             --border: #dbe2ea;
             --text: #1f2937;
             --text-muted: #5f6a7d;
-            --success: #107c10;
-            --danger: #d13438;
-            --warning: #ff8c00;
+            --success: #2d7a53;
+            --danger: #b94b55;
+            --warning: #a66a18;
             --shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
             --radius: 18px;
-            --ring-score: 59;
+            --ring-score: 57;
             --sidebar-bg: #ffffff;
             --sidebar-border: #e7edf3;
             --sidebar-border-soft: #eef2f6;
@@ -28,8 +28,8 @@
             --sidebar-text-strong: #111827;
             --sidebar-muted: #98a2b3;
             --sidebar-hover: #f1f5f9;
-            --sidebar-active-bg: #eef6ff;
-            --sidebar-indicator: var(--ms-blue);
+            --sidebar-active-bg: #e7f3f1;
+            --sidebar-indicator: var(--accent);
             --sidebar-shadow: 0 18px 40px rgba(15, 23, 42, 0.06);
         }
 
@@ -42,15 +42,15 @@
 
         body {
             margin: 0;
-            font-family: "Inter", "Segoe UI Variable", "Segoe UI", Arial, Helvetica, sans-serif;
+            font-family: "Source Sans 3", "Trebuchet MS", Tahoma, sans-serif;
             color: var(--text);
             background:
-                radial-gradient(circle at top right, rgba(15, 108, 189, 0.12), transparent 26%),
-                linear-gradient(180deg, #eef3f9 0%, #f7f9fc 240px, #eef2f7 100%);
+                radial-gradient(circle at top right, rgba(20, 125, 115, 0.1), transparent 26%),
+                linear-gradient(180deg, #edf1f0 0%, #f8f9f8 240px, #eef1f0 100%);
         }
 
         a {
-            color: var(--ms-blue);
+            color: var(--accent);
             text-decoration: none;
         }
 
@@ -62,8 +62,8 @@
         code {
             padding: 2px 6px;
             border-radius: 6px;
-            background: rgba(15, 108, 189, 0.08);
-            color: var(--ms-blue-dark);
+            background: rgba(20, 125, 115, 0.08);
+            color: var(--accent-dark);
             font-family: Consolas, "Courier New", monospace;
             font-size: 0.95em;
         }
@@ -73,7 +73,7 @@
         }
 
         .topbar {
-            background: linear-gradient(135deg, #0b1220 0%, #15233b 52%, #0f6cbd 140%);
+            background: linear-gradient(135deg, #202529 0%, #30383b 58%, #18534d 140%);
             color: #ffffff;
             padding: 22px 0;
             box-shadow: 0 12px 28px rgba(11, 18, 32, 0.28);
@@ -99,24 +99,19 @@
 
         .brand-mark {
             display: grid;
-            grid-template-columns: repeat(2, 14px);
-            gap: 4px;
-            padding: 6px;
+            place-items: center;
+            width: 44px;
+            height: 44px;
+            padding: 8px;
             border-radius: 10px;
             background: rgba(255, 255, 255, 0.08);
         }
 
-        .brand-mark span {
-            display: block;
-            width: 14px;
-            height: 14px;
-            border-radius: 3px;
+        .brand-mark svg {
+            width: 100%;
+            height: 100%;
+            color: #d9efeb;
         }
-
-        .brand-mark span:nth-child(1) { background: #f25022; }
-        .brand-mark span:nth-child(2) { background: #7fba00; }
-        .brand-mark span:nth-child(3) { background: #00a4ef; }
-        .brand-mark span:nth-child(4) { background: #ffb900; }
 
         .eyebrow {
             margin: 0 0 6px;
@@ -214,8 +209,8 @@
         }
 
         .sidebar-logo .brand-mark {
-            grid-template-columns: repeat(2, 10px);
-            gap: 3px;
+            width: 36px;
+            height: 36px;
             padding: 5px;
             border-radius: 8px;
             background: #f8fafc;
@@ -223,10 +218,8 @@
             flex-shrink: 0;
         }
 
-        .sidebar-logo .brand-mark span {
-            width: 10px;
-            height: 10px;
-            border-radius: 2px;
+        .sidebar-logo .brand-mark svg {
+            color: var(--accent-dark);
         }
 
         .sidebar-brand-copy {
@@ -319,8 +312,8 @@
         .sidebar-toggle:hover,
         .sidebar-toggle:focus {
             background: var(--sidebar-hover);
-            color: var(--ms-blue);
-            border-color: rgba(15, 108, 189, 0.2);
+            color: var(--accent);
+            border-color: rgba(20, 125, 115, 0.24);
             outline: none;
         }
 
@@ -440,7 +433,7 @@
         .sidebar-nav summary:hover,
         .sidebar-nav summary:focus {
             background-color: var(--sidebar-hover);
-            color: var(--ms-blue);
+            color: var(--accent);
             outline: none;
             text-decoration: none;
         }
@@ -449,7 +442,7 @@
         .sidebar-nav a.active,
         .sidebar-nav .sidebar-item.active,
         .sidebar-nav details[open] > summary {
-            color: var(--ms-blue);
+            color: var(--accent);
             background-color: var(--sidebar-active-bg);
             font-weight: 600;
         }
@@ -490,7 +483,7 @@
 
         .sidebar-nav details[open] > summary::after {
             transform: translateY(-50%) rotate(90deg);
-            color: var(--ms-blue);
+            color: var(--accent);
         }
 
         .sidebar-nav details > *:not(summary) {
@@ -498,7 +491,8 @@
         }
 
         .sidebar-nav .sidebar-icon {
-            width: 14px;
+            width: 17px;
+            height: 17px;
             text-align: center;
             color: var(--sidebar-muted);
             font-size: 13px;
@@ -509,7 +503,7 @@
         .sidebar-nav button:hover .sidebar-icon,
         .sidebar-nav a:hover .sidebar-icon,
         .sidebar-nav summary:hover .sidebar-icon {
-            color: var(--ms-blue);
+            color: var(--accent);
         }
 
         .sidebar-footer {
@@ -612,7 +606,7 @@
 
         .score-ring-fill {
             fill: none;
-            stroke: var(--ms-blue);
+            stroke: var(--accent);
             stroke-width: 16;
             stroke-linecap: round;
             transform: rotate(-90deg);
@@ -760,7 +754,7 @@
         .stat-card.success .value { color: var(--success); }
         .stat-card.danger .value { color: var(--danger); }
         .stat-card.warning .value { color: var(--warning); }
-        .stat-card.info .value { color: var(--ms-blue); }
+        .stat-card.info .value { color: var(--accent); }
 
         .section-card {
             padding: 24px 26px;
@@ -827,8 +821,8 @@
         }
 
         .pill.info {
-            color: var(--ms-blue);
-            background: rgba(15, 108, 189, 0.1);
+            color: var(--accent);
+            background: rgba(20, 125, 115, 0.1);
         }
 
         .pill.priority {
@@ -838,12 +832,12 @@
         }
 
         .pill.policy-on { background: rgba(76, 175, 80, 0.15); color: #2e7d32; border: 1px solid #4caf50; }
-        .pill.policy-always-on { background: rgba(15, 108, 189, 0.1); color: #0f6cbd; border: 1px solid #0f6cbd; }
+        .pill.policy-always-on { background: rgba(20, 125, 115, 0.1); color: #147d73; border: 1px solid #147d73; }
         .pill.policy-off { background: rgba(239, 83, 80, 0.15); color: #c62828; border: 1px solid #ef5350; }
         .pill.policy-na { background: rgba(148, 163, 184, 0.15); color: #64748b; border: 1px solid #94a3b8; }
 
-        .export-btn { background: rgba(15, 108, 189, 0.1); color: #0f6cbd; border: 1px solid #0f6cbd; border-radius: 8px; padding: 6px 14px; font-size: 12px; font-weight: 600; cursor: pointer; transition: background 0.2s, transform 0.1s; }
-        .export-btn:hover { background: rgba(15, 108, 189, 0.2); transform: translateY(-1px); }
+        .export-btn { background: rgba(20, 125, 115, 0.1); color: #147d73; border: 1px solid #147d73; border-radius: 8px; padding: 6px 14px; font-size: 12px; font-weight: 600; cursor: pointer; transition: background 0.2s, transform 0.1s; }
+        .export-btn:hover { background: rgba(20, 125, 115, 0.2); transform: translateY(-1px); }
         .export-btn:active { transform: translateY(0); }
 
         .category-card-grid {
@@ -861,6 +855,19 @@
             border: 1px solid var(--border);
             background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
             box-shadow: 0 10px 26px rgba(15, 23, 42, 0.06);
+        }
+
+        .category-card-heading {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .category-icon {
+            width: 24px;
+            height: 24px;
+            color: var(--accent);
+            flex: 0 0 auto;
         }
 
         .category-card .card-top {
@@ -901,7 +908,7 @@
             display: block;
             height: 100%;
             border-radius: inherit;
-            background: linear-gradient(90deg, var(--ms-blue-dark), var(--ms-blue));
+            background: linear-gradient(90deg, var(--accent-dark), var(--accent));
         }
 
         .card-metrics {
@@ -1359,10 +1366,10 @@
             <div class="sidebar-header">
                 <a class="sidebar-logo" href="#section-summary" onclick="scrollToSection('section-summary', null)">
                     <div class="brand-mark" aria-hidden="true">
-                        <span></span><span></span><span></span><span></span>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5.5 5.7v5.5c0 4.1 2.6 7.8 6.5 9.8 3.9-2 6.5-5.7 6.5-9.8V5.7L12 3Z"/><path d="m9.2 12 1.8 1.8 3.9-4"/></svg>
                     </div>
                     <div class="sidebar-brand-copy">
-                        <p class="sidebar-brand-kicker">Microsoft Defender</p>
+                        <p class="sidebar-brand-kicker">Security Assessment</p>
                         <h2 class="sidebar-brand-name">MDO Analyzer</h2>
                         <p class="sidebar-brand-subtitle">Threat policy review</p>
                     </div>
@@ -1373,16 +1380,16 @@
                     <div class="sidebar-section-title">Navigation</div>
                     <div class="sidebar-menu">
                         <nav class="sidebar-nav" id="categoryNav">
-                            <a class="sidebar-item active" href="#section-summary" onclick="scrollToSection('section-summary', this); return false;">Executive Summary</a>
-<a class="sidebar-item" href="#section-categories" onclick="scrollToSection('section-categories', this); return false;">Category Scorecards</a>
-<a class="sidebar-item" href="#section-anti-malware" onclick="scrollToSection('section-anti-malware', this); return false;">Anti-Malware</a>
-<a class="sidebar-item" href="#section-anti-phishing" onclick="scrollToSection('section-anti-phishing', this); return false;">Anti-Phishing</a>
-<a class="sidebar-item" href="#section-anti-spam-inbound" onclick="scrollToSection('section-anti-spam-inbound', this); return false;">Anti-Spam (Inbound)</a>
-<a class="sidebar-item" href="#section-anti-spam-outbound" onclick="scrollToSection('section-anti-spam-outbound', this); return false;">Anti-Spam (Outbound)</a>
-<a class="sidebar-item" href="#section-safe-attachments" onclick="scrollToSection('section-safe-attachments', this); return false;">Safe Attachments</a>
-<a class="sidebar-item" href="#section-safe-links" onclick="scrollToSection('section-safe-links', this); return false;">Safe Links</a>
-<a class="sidebar-item" href="#section-global-atp-settings" onclick="scrollToSection('section-global-atp-settings', this); return false;">Global ATP Settings</a>
-<a class="sidebar-item" href="#section-additional-security-checks" onclick="scrollToSection('section-additional-security-checks', this); return false;">Additional Security Checks</a>
+                            <a class="sidebar-item active" href="#section-summary" onclick="scrollToSection('section-summary', this); return false;"><svg class="sidebar-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V11m5 8V6m5 13v-5m5 5V3"/><path d="m4 7 5-3 5 5 5-4"/></svg><span>Executive Summary</span></a>
+<a class="sidebar-item" href="#section-categories" onclick="scrollToSection('section-categories', this); return false;"><svg class="sidebar-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V9m6 10V5m6 14v-7m4 7H2"/></svg><span>Category Scorecards</span></a>
+<a class="sidebar-item" href="#section-anti-malware" onclick="scrollToSection('section-anti-malware', this); return false;"><svg class="sidebar-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5.5 5.7v5.5c0 4.1 2.6 7.8 6.5 9.8 3.9-2 6.5-5.7 6.5-9.8V5.7L12 3Z"/><path d="m9.2 12 1.8 1.8 3.9-4"/></svg><span>Anti-Malware</span></a>
+<a class="sidebar-item" href="#section-anti-phishing" onclick="scrollToSection('section-anti-phishing', this); return false;"><svg class="sidebar-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5.5 5.7v5.5c0 4.1 2.6 7.8 6.5 9.8 3.9-2 6.5-5.7 6.5-9.8V5.7L12 3Z"/><path d="m9.2 12 1.8 1.8 3.9-4"/></svg><span>Anti-Phishing</span></a>
+<a class="sidebar-item" href="#section-anti-spam-inbound" onclick="scrollToSection('section-anti-spam-inbound', this); return false;"><svg class="sidebar-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5.5 5.7v5.5c0 4.1 2.6 7.8 6.5 9.8 3.9-2 6.5-5.7 6.5-9.8V5.7L12 3Z"/><path d="m9.2 12 1.8 1.8 3.9-4"/></svg><span>Anti-Spam (Inbound)</span></a>
+<a class="sidebar-item" href="#section-anti-spam-outbound" onclick="scrollToSection('section-anti-spam-outbound', this); return false;"><svg class="sidebar-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5.5 5.7v5.5c0 4.1 2.6 7.8 6.5 9.8 3.9-2 6.5-5.7 6.5-9.8V5.7L12 3Z"/><path d="m9.2 12 1.8 1.8 3.9-4"/></svg><span>Anti-Spam (Outbound)</span></a>
+<a class="sidebar-item" href="#section-safe-attachments" onclick="scrollToSection('section-safe-attachments', this); return false;"><svg class="sidebar-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5.5 5.7v5.5c0 4.1 2.6 7.8 6.5 9.8 3.9-2 6.5-5.7 6.5-9.8V5.7L12 3Z"/><path d="m9.2 12 1.8 1.8 3.9-4"/></svg><span>Safe Attachments</span></a>
+<a class="sidebar-item" href="#section-safe-links" onclick="scrollToSection('section-safe-links', this); return false;"><svg class="sidebar-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5.5 5.7v5.5c0 4.1 2.6 7.8 6.5 9.8 3.9-2 6.5-5.7 6.5-9.8V5.7L12 3Z"/><path d="m9.2 12 1.8 1.8 3.9-4"/></svg><span>Safe Links</span></a>
+<a class="sidebar-item" href="#section-global-atp-settings" onclick="scrollToSection('section-global-atp-settings', this); return false;"><svg class="sidebar-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5.5 5.7v5.5c0 4.1 2.6 7.8 6.5 9.8 3.9-2 6.5-5.7 6.5-9.8V5.7L12 3Z"/><path d="m9.2 12 1.8 1.8 3.9-4"/></svg><span>Global ATP Settings</span></a>
+<a class="sidebar-item" href="#section-additional-security-checks" onclick="scrollToSection('section-additional-security-checks', this); return false;"><svg class="sidebar-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.4 15.4 4.1 4.1"/><path d="M8 10.5h5m-2.5-2.5v5"/></svg><span>Additional Security Checks</span></a>
                         </nav>
                     </div>
                 </div>
@@ -1392,7 +1399,7 @@
                         <p class="sidebar-note-text">Use the menu to jump between policy categories and review findings, gaps, and remediation guidance in a single flow.</p>
                         <div class="sidebar-note-meta">
                             <span>Standalone HTML</span>
-                            <span>2026-07-27 12:26:30</span>
+                            <span>2026-08-06 09:26:09</span>
                         </div>
                     </div>
                 </div>
@@ -1405,15 +1412,15 @@
             <div class="brand-row">
                 <div class="brand">
                     <div class="brand-mark" aria-hidden="true">
-                        <span></span><span></span><span></span><span></span>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5.5 5.7v5.5c0 4.1 2.6 7.8 6.5 9.8 3.9-2 6.5-5.7 6.5-9.8V5.7L12 3Z"/><path d="m9.2 12 1.8 1.8 3.9-4"/></svg>
                     </div>
                     <div>
-                        <p class="eyebrow">Microsoft Defender for Office 365</p>
+                        <p class="eyebrow">Independent Security Assessment</p>
                         <h1>MDO Threat Policy Analyzer</h1>
                         <p>Contoso &middot; Executive-ready compliance analysis</p>
                     </div>
                 </div>
-                <div class="meta-chip"><strong>Generated:</strong> <span>2026-07-27 12:26:30</span></div>
+                <div class="meta-chip"><strong>Generated:</strong> <span>2026-08-06 09:26:09</span></div>
             </div>
         </div>
     </header>
@@ -1430,7 +1437,7 @@
                 <h2>Executive Summary</h2>
                 <p>This assessment compares the tenant's Microsoft Defender for Office 365 configuration against Microsoft's recommended cloud security baseline. Use the scorecard below to understand coverage, identify high-impact configuration gaps, and prioritize remediation activity.</p>
                 <div class="executive-center">
-                    <span class="value">159</span>
+                    <span class="value">166</span>
                     <span class="label">Settings Assessed</span>
                 </div>
                 <div class="executive-summary-grid">
@@ -1441,21 +1448,21 @@
                                 <circle cx="88" cy="88" r="70" class="score-ring-bg"/>
                                 <circle cx="88" cy="88" r="70" class="score-ring-fill"
                                         stroke-dasharray="439.82"
-                                        stroke-dashoffset="calc(439.82 * (1 - 59 / 100))"/>
+                                        stroke-dashoffset="calc(439.82 * (1 - 57 / 100))"/>
                             </svg>
                             <div class="score-ring-text">
-                                <strong>59%</strong>
+                                <strong>57%</strong>
                                 <span>Compliance</span>
                             </div>
                         </div>
                         <div class="executive-stats">
                             <div class="stat-card success">
                                 <span class="label">Matched</span>
-                                <span class="value">94</span>
+                                <span class="value">95</span>
                             </div>
                             <div class="stat-card danger">
                                 <span class="label">Not Matched</span>
-                                <span class="value">65</span>
+                                <span class="value">71</span>
                             </div>
                         </div>
                     </div>
@@ -1466,21 +1473,21 @@
                                 <circle cx="88" cy="88" r="70" class="score-ring-bg"/>
                                 <circle cx="88" cy="88" r="70" class="score-ring-fill strict-fill"
                                         stroke-dasharray="439.82"
-                                        stroke-dashoffset="calc(439.82 * (1 - 54 / 100))"/>
+                                        stroke-dashoffset="calc(439.82 * (1 - 52 / 100))"/>
                             </svg>
                             <div class="score-ring-text">
-                                <strong>54%</strong>
+                                <strong>52%</strong>
                                 <span>Compliance</span>
                             </div>
                         </div>
                         <div class="executive-stats">
                             <div class="stat-card success">
                                 <span class="label">Matched</span>
-                                <span class="value">86</span>
+                                <span class="value">87</span>
                             </div>
                             <div class="stat-card danger">
                                 <span class="label">Not Matched</span>
-                                <span class="value">73</span>
+                                <span class="value">79</span>
                             </div>
                         </div>
                     </div>
@@ -1504,7 +1511,10 @@
                 </div>
                 <div class="category-card-grid" id="categoryCards">
                     <div class="category-card">
-    <div class="category-card-title">Anti-Malware</div>
+    <div class="category-card-heading">
+        <svg class="category-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V9m6 10V5m6 14v-7m4 7H2"/></svg>
+        <div class="category-card-title">Anti-Malware</div>
+    </div>
     <div class="category-card-charts">
         <div class="category-chart-group">
             <div class="category-chart-label">Standard</div>
@@ -1531,7 +1541,10 @@
     </div>
 </div>
 <div class="category-card">
-    <div class="category-card-title">Anti-Phishing</div>
+    <div class="category-card-heading">
+        <svg class="category-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V9m6 10V5m6 14v-7m4 7H2"/></svg>
+        <div class="category-card-title">Anti-Phishing</div>
+    </div>
     <div class="category-card-charts">
         <div class="category-chart-group">
             <div class="category-chart-label">Standard</div>
@@ -1558,7 +1571,10 @@
     </div>
 </div>
 <div class="category-card">
-    <div class="category-card-title">Anti-Spam (Inbound)</div>
+    <div class="category-card-heading">
+        <svg class="category-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V9m6 10V5m6 14v-7m4 7H2"/></svg>
+        <div class="category-card-title">Anti-Spam (Inbound)</div>
+    </div>
     <div class="category-card-charts">
         <div class="category-chart-group">
             <div class="category-chart-label">Standard</div>
@@ -1585,34 +1601,40 @@
     </div>
 </div>
 <div class="category-card">
-    <div class="category-card-title">Anti-Spam (Outbound)</div>
+    <div class="category-card-heading">
+        <svg class="category-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V9m6 10V5m6 14v-7m4 7H2"/></svg>
+        <div class="category-card-title">Anti-Spam (Outbound)</div>
+    </div>
     <div class="category-card-charts">
         <div class="category-chart-group">
             <div class="category-chart-label">Standard</div>
             <svg width="70" height="70" viewBox="0 0 70 70" style="display: block; margin: 0 auto;">
     <circle cx="35" cy="35" r="28" fill="none" stroke="#1f2937" stroke-width="8"/>
-    <circle cx="35" cy="35" r="28" fill="none" stroke="#f59e0b" stroke-width="8" 
-            stroke-dasharray="175.93" stroke-dashoffset="87.96" 
+    <circle cx="35" cy="35" r="28" fill="none" stroke="#ef4444" stroke-width="8" 
+            stroke-dasharray="175.93" stroke-dashoffset="109.08" 
             stroke-linecap="round" transform="rotate(-90 35 35)"/>
-    <text x="35" y="41" text-anchor="middle" font-size="18" font-weight="700" fill="#f59e0b">50%</text>
+    <text x="35" y="41" text-anchor="middle" font-size="18" font-weight="700" fill="#ef4444">38%</text>
 </svg>
-            <div class="category-chart-detail">7 / 14 matched</div>
+            <div class="category-chart-detail">8 / 21 matched</div>
         </div>
         <div class="category-chart-group">
             <div class="category-chart-label">Strict</div>
             <svg width="70" height="70" viewBox="0 0 70 70" style="display: block; margin: 0 auto;">
     <circle cx="35" cy="35" r="28" fill="none" stroke="#1f2937" stroke-width="8"/>
-    <circle cx="35" cy="35" r="28" fill="none" stroke="#f59e0b" stroke-width="8" 
-            stroke-dasharray="175.93" stroke-dashoffset="87.96" 
+    <circle cx="35" cy="35" r="28" fill="none" stroke="#ef4444" stroke-width="8" 
+            stroke-dasharray="175.93" stroke-dashoffset="109.08" 
             stroke-linecap="round" transform="rotate(-90 35 35)"/>
-    <text x="35" y="41" text-anchor="middle" font-size="18" font-weight="700" fill="#f59e0b">50%</text>
+    <text x="35" y="41" text-anchor="middle" font-size="18" font-weight="700" fill="#ef4444">38%</text>
 </svg>
-            <div class="category-chart-detail">7 / 14 matched</div>
+            <div class="category-chart-detail">8 / 21 matched</div>
         </div>
     </div>
 </div>
 <div class="category-card">
-    <div class="category-card-title">Safe Attachments</div>
+    <div class="category-card-heading">
+        <svg class="category-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V9m6 10V5m6 14v-7m4 7H2"/></svg>
+        <div class="category-card-title">Safe Attachments</div>
+    </div>
     <div class="category-card-charts">
         <div class="category-chart-group">
             <div class="category-chart-label">Standard</div>
@@ -1639,7 +1661,10 @@
     </div>
 </div>
 <div class="category-card">
-    <div class="category-card-title">Safe Links</div>
+    <div class="category-card-heading">
+        <svg class="category-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V9m6 10V5m6 14v-7m4 7H2"/></svg>
+        <div class="category-card-title">Safe Links</div>
+    </div>
     <div class="category-card-charts">
         <div class="category-chart-group">
             <div class="category-chart-label">Standard</div>
@@ -1666,7 +1691,10 @@
     </div>
 </div>
 <div class="category-card">
-    <div class="category-card-title">Global ATP Settings</div>
+    <div class="category-card-heading">
+        <svg class="category-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V9m6 10V5m6 14v-7m4 7H2"/></svg>
+        <div class="category-card-title">Global ATP Settings</div>
+    </div>
     <div class="category-card-charts">
         <div class="category-chart-group">
             <div class="category-chart-label">Standard</div>
@@ -3068,14 +3096,14 @@
         <span class="pill success">&#10004; Matched = baseline met</span>
         <span class="pill danger">&#10060; Not Matched = remediation advised</span>
     </div>
-    <div class="policy-collapsible collapsed" id="section-anti-spam-outbound-custom-outbound-antu-spam">
-    <div class="policy-header" onclick="togglePolicy('section-anti-spam-outbound-custom-outbound-antu-spam')">
+    <div class="policy-collapsible collapsed" id="section-anti-spam-outbound-admin-custom-anti-spam-policy">
+    <div class="policy-header" onclick="togglePolicy('section-anti-spam-outbound-admin-custom-anti-spam-policy')">
         <span class="policy-toggle-icon">&#9660;</span>
-        <span class="policy-title">Custom_Outbound_Antu-Spam</span>
+        <span class="policy-title">Admin_Custom_Anti_Spam_Policy</span>
         <span class="pill policy-on">Policy Status: On</span>
-        <span class="pill priority">Priority: 0</span>
-        <span class="pill info">Standard: 4 / 7</span>
-        <span class="pill info">Strict: 4 / 7</span>
+        <span class="pill priority">Priority: 1</span>
+        <span class="pill info">Standard: 2 / 7</span>
+        <span class="pill info">Strict: 2 / 7</span>
     </div>
     <div class="policy-content">
         <div class="findings-table-wrap">
@@ -3094,7 +3122,7 @@
             <tbody>
                 <tr>
     <td>Set an external message limit<br><span class="setting-param">(RecipientLimitExternalPerHour)</span></td>
-    <td>10000</td>
+    <td>10</td>
     <td>500</td>
     <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
     <td>400</td>
@@ -3103,7 +3131,7 @@
 </tr>
 <tr>
     <td>Set an internal message limit<br><span class="setting-param">(RecipientLimitInternalPerHour)</span></td>
-    <td>10000</td>
+    <td>10</td>
     <td>1000</td>
     <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
     <td>800</td>
@@ -3112,7 +3140,99 @@
 </tr>
 <tr>
     <td>Set a daily message limit<br><span class="setting-param">(RecipientLimitPerDay)</span></td>
-    <td>10000</td>
+    <td>100</td>
+    <td>1000</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td>800</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#outbound-spam-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Restriction placed on users who reach the message limit<br><span class="setting-param">(ActionWhenThresholdReached)</span></td>
+    <td>BlockUserForToday</td>
+    <td>BlockUser</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td>BlockUser</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#outbound-spam-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Automatic forwarding rules<br><span class="setting-param">(AutoForwardingMode)</span></td>
+    <td>On</td>
+    <td>Automatic</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td>Automatic</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#outbound-spam-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Send a copy of outbound messages that exceed these limits<br><span class="setting-param">(BccSuspiciousOutboundMail)</span></td>
+    <td>false</td>
+    <td>false</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td>false</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#outbound-spam-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Notify these users and groups if a sender is blocked due to sending outbound spam<br><span class="setting-param">(NotifyOutboundSpam)</span></td>
+    <td>false</td>
+    <td>false</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td>false</td>
+    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#outbound-spam-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+            </tbody>
+        </table>
+        </div>
+    </div>
+</div>
+<div class="policy-collapsible collapsed" id="section-anti-spam-outbound-custom-outbound-antu-spam">
+    <div class="policy-header" onclick="togglePolicy('section-anti-spam-outbound-custom-outbound-antu-spam')">
+        <span class="policy-toggle-icon">&#9660;</span>
+        <span class="policy-title">Custom_Outbound_Antu-Spam</span>
+        <span class="pill policy-on">Policy Status: On</span>
+        <span class="pill priority">Priority: 0</span>
+        <span class="pill info">Standard: 3 / 7</span>
+        <span class="pill info">Strict: 3 / 7</span>
+    </div>
+    <div class="policy-content">
+        <div class="findings-table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Setting Name</th>
+                    <th>Current Value</th>
+                    <th>Recommended Standard Value</th>
+                    <th>Standard Status</th>
+                    <th>Recommended Strict Value</th>
+                    <th>Strict Status</th>
+                    <th>Reference</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+    <td>Set an external message limit<br><span class="setting-param">(RecipientLimitExternalPerHour)</span></td>
+    <td>5</td>
+    <td>500</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td>400</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#outbound-spam-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Set an internal message limit<br><span class="setting-param">(RecipientLimitInternalPerHour)</span></td>
+    <td>10</td>
+    <td>1000</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td>800</td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#outbound-spam-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
+</tr>
+<tr>
+    <td>Set a daily message limit<br><span class="setting-param">(RecipientLimitPerDay)</span></td>
+    <td>501</td>
     <td>1000</td>
     <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
     <td>800</td>
@@ -3130,11 +3250,11 @@
 </tr>
 <tr>
     <td>Automatic forwarding rules<br><span class="setting-param">(AutoForwardingMode)</span></td>
-    <td>Off</td>
+    <td>On</td>
     <td>Automatic</td>
-    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
     <td>Automatic</td>
-    <td><span class="status-badge status-matched">&#10004; Matched</span></td>
+    <td><span class="status-badge status-not-matched">&#10060; Not Matched</span></td>
     <td><a href="https://learn.microsoft.com/defender-office-365/recommended-settings-for-eop-and-office365#outbound-spam-policy-settings" target="_blank" rel="noopener noreferrer">Microsoft Learn</a></td>
 </tr>
 <tr>
@@ -3536,7 +3656,7 @@
     </div>
     <div class="detail-meta">
         <span class="pill success">Pass: 11</span>
-        <span class="pill warning">Warning: 18</span>
+        <span class="pill warning">Warning: 20</span>
         <span class="pill danger">Critical: 9</span>
     </div>
     <div class="findings-table-wrap">
@@ -3564,7 +3684,7 @@
     <td>Rule Coverage</td>
     <td>Anti-Phishing policy assignment</td>
     <td><span class="status-badge status-warning">&#9888; Warning</span></td>
-    <td>Policy &quot;Custom_Anti-phishing&quot; is active, but its enabled rules are scoped and may leave parts of the organization uncovered. Enabled rules: Custom_Anti-phishing. Scoped conditions detected: SentTo = PeytonD@contoso.com.</td>
+    <td>Policy &quot;Custom_Anti-phishing&quot; is active, but its enabled rules are scoped and may leave parts of the organization uncovered. Enabled rules: Custom_Anti-phishing. Scoped conditions detected: SentTo = PeytonD@Contoso.com.</td>
     <td>Review Anti-Phishing rules for policy &quot;Custom_Anti-phishing&quot; and confirm whether the scoped assignments intentionally exclude users or domains.</td>
     <td><a href="https://learn.microsoft.com/defender-office-365/preset-security-policies" target="_blank" rel="noopener noreferrer">Microsoft Docs</a></td>
 </tr>
@@ -3580,7 +3700,7 @@
     <td>Rule Coverage</td>
     <td>Inbound Anti-Spam policy assignment</td>
     <td><span class="status-badge status-warning">&#9888; Warning</span></td>
-    <td>Policy &quot;Custom_inbound_Anti-Spam&quot; is active, but its enabled rules are scoped and may leave parts of the organization uncovered. Enabled rules: Custom_inbound_Anti-Spam. Scoped conditions detected: SentTo = MarioR@contoso.com; MonicaT@contoso.com.</td>
+    <td>Policy &quot;Custom_inbound_Anti-Spam&quot; is active, but its enabled rules are scoped and may leave parts of the organization uncovered. Enabled rules: Custom_inbound_Anti-Spam. Scoped conditions detected: SentTo = MarioR@Contoso.com; MonicaT@Contoso.com.</td>
     <td>Review Inbound Anti-Spam rules for policy &quot;Custom_inbound_Anti-Spam&quot; and confirm whether the scoped assignments intentionally exclude users or domains.</td>
     <td><a href="https://learn.microsoft.com/defender-office-365/preset-security-policies" target="_blank" rel="noopener noreferrer">Microsoft Docs</a></td>
 </tr>
@@ -3596,7 +3716,7 @@
     <td>Rule Coverage</td>
     <td>Outbound Anti-Spam policy assignment</td>
     <td><span class="status-badge status-warning">&#9888; Warning</span></td>
-    <td>Policy &quot;Custom_Outbound_Antu-Spam&quot; is active, but its enabled rules are scoped and may leave parts of the organization uncovered. Enabled rules: Custom_Outbound_Antu-Spam. Scoped conditions detected: From = KaiC@contoso.com.</td>
+    <td>Policy &quot;Custom_Outbound_Antu-Spam&quot; is active, but its enabled rules are scoped and may leave parts of the organization uncovered. Enabled rules: Custom_Outbound_Antu-Spam. Scoped conditions detected: From = KaiC@Contoso.com.</td>
     <td>Review Outbound Anti-Spam rules for policy &quot;Custom_Outbound_Antu-Spam&quot; and confirm whether the scoped assignments intentionally exclude users or domains.</td>
     <td><a href="https://learn.microsoft.com/defender-office-365/preset-security-policies" target="_blank" rel="noopener noreferrer">Microsoft Docs</a></td>
 </tr>
@@ -3610,9 +3730,17 @@
 </tr>
 <tr>
     <td>Rule Coverage</td>
+    <td>Outbound Anti-Spam policy assignment</td>
+    <td><span class="status-badge status-warning">&#9888; Warning</span></td>
+    <td>Policy &quot;Admin_Custom_Anti_Spam_Policy&quot; is active, but its enabled rules are scoped and may leave parts of the organization uncovered. Enabled rules: Admin_Custom_Anti_Spam_Policy. Scoped conditions detected: From = admin@Contoso.com.</td>
+    <td>Review Outbound Anti-Spam rules for policy &quot;Admin_Custom_Anti_Spam_Policy&quot; and confirm whether the scoped assignments intentionally exclude users or domains.</td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/preset-security-policies" target="_blank" rel="noopener noreferrer">Microsoft Docs</a></td>
+</tr>
+<tr>
+    <td>Rule Coverage</td>
     <td>Anti-Malware policy assignment</td>
     <td><span class="status-badge status-warning">&#9888; Warning</span></td>
-    <td>Policy &quot;Custom_Anti-malware&quot; is active, but its enabled rules are scoped and may leave parts of the organization uncovered. Enabled rules: Custom_Anti-malware. Scoped conditions detected: SentTo = PeytonD@contoso.com.</td>
+    <td>Policy &quot;Custom_Anti-malware&quot; is active, but its enabled rules are scoped and may leave parts of the organization uncovered. Enabled rules: Custom_Anti-malware. Scoped conditions detected: SentTo = PeytonD@Contoso.com.</td>
     <td>Review Anti-Malware rules for policy &quot;Custom_Anti-malware&quot; and confirm whether the scoped assignments intentionally exclude users or domains.</td>
     <td><a href="https://learn.microsoft.com/defender-office-365/preset-security-policies" target="_blank" rel="noopener noreferrer">Microsoft Docs</a></td>
 </tr>
@@ -3692,7 +3820,7 @@
     <td>Policy Priority</td>
     <td>Outbound Anti-Spam priority order</td>
     <td><span class="status-badge status-pass">&#10004; Pass</span></td>
-    <td>Priority order reviewed: Custom_Outbound_Antu-Spam (priority 0, standard score 57%); Default (no enabled rule, standard score 43%, default/built-in).</td>
+    <td>Priority order reviewed: Custom_Outbound_Antu-Spam (priority 0, standard score 43%); Admin_Custom_Anti_Spam_Policy (priority 1, standard score 29%); Default (no enabled rule, standard score 43%, default/built-in).</td>
     <td>No action required unless policy precedence should be adjusted for business scope.</td>
     <td><a href="https://learn.microsoft.com/defender-office-365/preset-security-policies#order-of-precedence-for-preset-security-policies-and-other-policies" target="_blank" rel="noopener noreferrer">Microsoft Docs</a></td>
 </tr>
@@ -3708,7 +3836,7 @@
     <td>Email Authentication</td>
     <td>DKIM coverage for accepted domains</td>
     <td><span class="status-badge status-critical">&#10060; Critical</span></td>
-    <td>DKIM is not fully enabled for all accepted domains. Gaps detected: contoso.com (no DKIM config found).</td>
+    <td>DKIM is not fully enabled for all accepted domains. Gaps detected: Contoso.com (no DKIM config found).</td>
     <td>Enable DKIM signing for every accepted domain that sends mail from Microsoft 365.</td>
     <td><a href="https://learn.microsoft.com/defender-office-365/email-authentication-about" target="_blank" rel="noopener noreferrer">Microsoft Docs</a></td>
 </tr>
@@ -3853,6 +3981,14 @@ Parameter name: exchangeConfigUnit</td>
 </tr>
 <tr>
     <td>Outbound Spam Notifications</td>
+    <td>Notification config - Admin_Custom_Anti_Spam_Policy</td>
+    <td><span class="status-badge status-warning">&#9888; Warning</span></td>
+    <td>Policy &quot;Admin_Custom_Anti_Spam_Policy&quot; does not have Bcc or notification settings configured for outbound spam.</td>
+    <td>Configure BccSuspiciousOutboundMail or NotifyOutboundSpam for outbound spam events.</td>
+    <td><a href="https://learn.microsoft.com/defender-office-365/outbound-spam-policies-configure" target="_blank" rel="noopener noreferrer">Microsoft Docs</a></td>
+</tr>
+<tr>
+    <td>Outbound Spam Notifications</td>
     <td>Alert policy coverage</td>
     <td><span class="status-badge status-pass">&#10004; Pass</span></td>
     <td>Found 7 alert policy(ies) related to outbound spam or restricted users.</td>
@@ -3869,7 +4005,7 @@ Parameter name: exchangeConfigUnit</td>
     <footer class="footer">
         <div class="footer-inner">
             <div class="footer-title">MDO Threat Policy Analyzer</div>
-            <div class="footer-date">Report generated at 2026-07-27 12:26:30</div>
+            <div class="footer-date">Report generated at 2026-08-06 09:26:09</div>
             <div class="footer-disclaimer">This assessment reflects configuration state at the time of collection and should be reviewed alongside operational context, compensating controls, and Microsoft guidance before final risk decisions are made.</div>
         </div>
     </footer>
