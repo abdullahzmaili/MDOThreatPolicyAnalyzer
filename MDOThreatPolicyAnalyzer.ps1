@@ -2336,6 +2336,25 @@ function Get-StatusCssClass {
 }
 #endregion
 
+#region Get-NeutralIconSvg
+function Get-NeutralIconSvg {
+    param(
+        [ValidateSet('Shield', 'Graph', 'Magnifier', 'Analytics')]
+        [string]$Name,
+        [string]$CssClass = 'neutral-icon'
+    )
+
+    $paths = switch ($Name) {
+        'Shield' { '<path d="M12 3 5.5 5.7v5.5c0 4.1 2.6 7.8 6.5 9.8 3.9-2 6.5-5.7 6.5-9.8V5.7L12 3Z"/><path d="m9.2 12 1.8 1.8 3.9-4"/>' }
+        'Graph' { '<path d="M4 19V9m6 10V5m6 14v-7m4 7H2"/>' }
+        'Magnifier' { '<circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.4 15.4 4.1 4.1"/><path d="M8 10.5h5m-2.5-2.5v5"/>' }
+        'Analytics' { '<path d="M4 19V11m5 8V6m5 13v-5m5 5V3"/><path d="m4 7 5-3 5 5 5-4"/>' }
+    }
+
+    return ('<svg class="{0}" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">{1}</svg>' -f $CssClass, $paths)
+}
+#endregion
+
 #region New-StatusBadgeHtml
 function New-StatusBadgeHtml {
     param([string]$Status)
@@ -2409,16 +2428,20 @@ function New-NavItemsHtml {
     }
 
     $navItems = New-Object 'System.Collections.Generic.List[string]'
-    [void]$navItems.Add("<a class=`"sidebar-item active`" href=`"#section-summary`" onclick=`"scrollToSection('section-summary', this); return false;`">Executive Summary</a>")
-    [void]$navItems.Add("<a class=`"sidebar-item`" href=`"#section-categories`" onclick=`"scrollToSection('section-categories', this); return false;`">Category Scorecards</a>")
+    $analyticsIcon = Get-NeutralIconSvg -Name Analytics -CssClass 'sidebar-icon'
+    $graphIcon = Get-NeutralIconSvg -Name Graph -CssClass 'sidebar-icon'
+    $shieldIcon = Get-NeutralIconSvg -Name Shield -CssClass 'sidebar-icon'
+    $magnifierIcon = Get-NeutralIconSvg -Name Magnifier -CssClass 'sidebar-icon'
+    [void]$navItems.Add("<a class=`"sidebar-item active`" href=`"#section-summary`" onclick=`"scrollToSection('section-summary', this); return false;`">$analyticsIcon<span>Executive Summary</span></a>")
+    [void]$navItems.Add("<a class=`"sidebar-item`" href=`"#section-categories`" onclick=`"scrollToSection('section-categories', this); return false;`">$graphIcon<span>Category Scorecards</span></a>")
     $categories = $Results | Group-Object -Property Category | Sort-Object @{ Expression = { if ($_.Name -eq 'Global ATP Settings') { 1 } else { 0 } } }, Name
     foreach ($group in $categories) {
         $categorySlug = ConvertTo-Slug -Text $group.Name
         $sectionId = "section-$categorySlug"
         $categoryName = HtmlEncode -Text $group.Name
-        [void]$navItems.Add("<a class=`"sidebar-item`" href=`"#$sectionId`" onclick=`"scrollToSection('$sectionId', this); return false;`">$categoryName</a>")
+        [void]$navItems.Add("<a class=`"sidebar-item`" href=`"#$sectionId`" onclick=`"scrollToSection('$sectionId', this); return false;`">$shieldIcon<span>$categoryName</span></a>")
     }
-    [void]$navItems.Add("<a class=`"sidebar-item`" href=`"#section-additional-security-checks`" onclick=`"scrollToSection('section-additional-security-checks', this); return false;`">Additional Security Checks</a>")
+    [void]$navItems.Add("<a class=`"sidebar-item`" href=`"#section-additional-security-checks`" onclick=`"scrollToSection('section-additional-security-checks', this); return false;`">$magnifierIcon<span>Additional Security Checks</span></a>")
 
     return ($navItems -join [Environment]::NewLine)
 }
@@ -2440,10 +2463,14 @@ function New-CategoryCardHtml {
     $strictScore = if ($strictTotal -gt 0) { [math]::Round(($StrictCompliant / $strictTotal) * 100, 0) } else { 0 }
     $standardSvg = New-ScoreRingSvg -Score $standardScore -Size 70
     $strictSvg = New-ScoreRingSvg -Score $strictScore -Size 70
+    $categoryIcon = Get-NeutralIconSvg -Name Graph -CssClass 'category-icon'
 
     return @"
 <div class="category-card">
-    <div class="category-card-title">$(HtmlEncode -Text $Category)</div>
+    <div class="category-card-heading">
+        $categoryIcon
+        <div class="category-card-title">$(HtmlEncode -Text $Category)</div>
+    </div>
     <div class="category-card-charts">
         <div class="category-chart-group">
             <div class="category-chart-label">Standard</div>
@@ -2679,18 +2706,18 @@ function Get-DefaultReportTemplate {
     <title>{{TENANT_NAME}} - MDO Assessment Report</title>
     <style>
         :root {
-            --ms-blue: #0f6cbd;
-            --ms-blue-dark: #0b3b69;
-            --header-dark: #111827;
+            --accent: #147d73;
+            --accent-dark: #18534d;
+            --header-dark: #23282d;
             --surface: #ffffff;
             --surface-alt: #f5f7fb;
             --surface-muted: #eef2f7;
             --border: #dbe2ea;
             --text: #1f2937;
             --text-muted: #5f6a7d;
-            --success: #107c10;
-            --danger: #d13438;
-            --warning: #ff8c00;
+            --success: #2d7a53;
+            --danger: #b94b55;
+            --warning: #a66a18;
             --shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
             --radius: 18px;
             --ring-score: {{OVERALL_SCORE}};
@@ -2701,8 +2728,8 @@ function Get-DefaultReportTemplate {
             --sidebar-text-strong: #111827;
             --sidebar-muted: #98a2b3;
             --sidebar-hover: #f1f5f9;
-            --sidebar-active-bg: #eef6ff;
-            --sidebar-indicator: var(--ms-blue);
+            --sidebar-active-bg: #e7f3f1;
+            --sidebar-indicator: var(--accent);
             --sidebar-shadow: 0 18px 40px rgba(15, 23, 42, 0.06);
         }
 
@@ -2715,15 +2742,15 @@ function Get-DefaultReportTemplate {
 
         body {
             margin: 0;
-            font-family: "Inter", "Segoe UI Variable", "Segoe UI", Arial, Helvetica, sans-serif;
+            font-family: "Source Sans 3", "Trebuchet MS", Tahoma, sans-serif;
             color: var(--text);
             background:
-                radial-gradient(circle at top right, rgba(15, 108, 189, 0.12), transparent 26%),
-                linear-gradient(180deg, #eef3f9 0%, #f7f9fc 240px, #eef2f7 100%);
+                radial-gradient(circle at top right, rgba(20, 125, 115, 0.1), transparent 26%),
+                linear-gradient(180deg, #edf1f0 0%, #f8f9f8 240px, #eef1f0 100%);
         }
 
         a {
-            color: var(--ms-blue);
+            color: var(--accent);
             text-decoration: none;
         }
 
@@ -2735,8 +2762,8 @@ function Get-DefaultReportTemplate {
         code {
             padding: 2px 6px;
             border-radius: 6px;
-            background: rgba(15, 108, 189, 0.08);
-            color: var(--ms-blue-dark);
+            background: rgba(20, 125, 115, 0.08);
+            color: var(--accent-dark);
             font-family: Consolas, "Courier New", monospace;
             font-size: 0.95em;
         }
@@ -2746,7 +2773,7 @@ function Get-DefaultReportTemplate {
         }
 
         .topbar {
-            background: linear-gradient(135deg, #0b1220 0%, #15233b 52%, #0f6cbd 140%);
+            background: linear-gradient(135deg, #202529 0%, #30383b 58%, #18534d 140%);
             color: #ffffff;
             padding: 22px 0;
             box-shadow: 0 12px 28px rgba(11, 18, 32, 0.28);
@@ -2772,24 +2799,19 @@ function Get-DefaultReportTemplate {
 
         .brand-mark {
             display: grid;
-            grid-template-columns: repeat(2, 14px);
-            gap: 4px;
-            padding: 6px;
+            place-items: center;
+            width: 44px;
+            height: 44px;
+            padding: 8px;
             border-radius: 10px;
             background: rgba(255, 255, 255, 0.08);
         }
 
-        .brand-mark span {
-            display: block;
-            width: 14px;
-            height: 14px;
-            border-radius: 3px;
+        .brand-mark svg {
+            width: 100%;
+            height: 100%;
+            color: #d9efeb;
         }
-
-        .brand-mark span:nth-child(1) { background: #f25022; }
-        .brand-mark span:nth-child(2) { background: #7fba00; }
-        .brand-mark span:nth-child(3) { background: #00a4ef; }
-        .brand-mark span:nth-child(4) { background: #ffb900; }
 
         .eyebrow {
             margin: 0 0 6px;
@@ -2887,8 +2909,8 @@ function Get-DefaultReportTemplate {
         }
 
         .sidebar-logo .brand-mark {
-            grid-template-columns: repeat(2, 10px);
-            gap: 3px;
+            width: 36px;
+            height: 36px;
             padding: 5px;
             border-radius: 8px;
             background: #f8fafc;
@@ -2896,10 +2918,8 @@ function Get-DefaultReportTemplate {
             flex-shrink: 0;
         }
 
-        .sidebar-logo .brand-mark span {
-            width: 10px;
-            height: 10px;
-            border-radius: 2px;
+        .sidebar-logo .brand-mark svg {
+            color: var(--accent-dark);
         }
 
         .sidebar-brand-copy {
@@ -2992,8 +3012,8 @@ function Get-DefaultReportTemplate {
         .sidebar-toggle:hover,
         .sidebar-toggle:focus {
             background: var(--sidebar-hover);
-            color: var(--ms-blue);
-            border-color: rgba(15, 108, 189, 0.2);
+            color: var(--accent);
+            border-color: rgba(20, 125, 115, 0.24);
             outline: none;
         }
 
@@ -3113,7 +3133,7 @@ function Get-DefaultReportTemplate {
         .sidebar-nav summary:hover,
         .sidebar-nav summary:focus {
             background-color: var(--sidebar-hover);
-            color: var(--ms-blue);
+            color: var(--accent);
             outline: none;
             text-decoration: none;
         }
@@ -3122,7 +3142,7 @@ function Get-DefaultReportTemplate {
         .sidebar-nav a.active,
         .sidebar-nav .sidebar-item.active,
         .sidebar-nav details[open] > summary {
-            color: var(--ms-blue);
+            color: var(--accent);
             background-color: var(--sidebar-active-bg);
             font-weight: 600;
         }
@@ -3163,7 +3183,7 @@ function Get-DefaultReportTemplate {
 
         .sidebar-nav details[open] > summary::after {
             transform: translateY(-50%) rotate(90deg);
-            color: var(--ms-blue);
+            color: var(--accent);
         }
 
         .sidebar-nav details > *:not(summary) {
@@ -3171,7 +3191,8 @@ function Get-DefaultReportTemplate {
         }
 
         .sidebar-nav .sidebar-icon {
-            width: 14px;
+            width: 17px;
+            height: 17px;
             text-align: center;
             color: var(--sidebar-muted);
             font-size: 13px;
@@ -3182,7 +3203,7 @@ function Get-DefaultReportTemplate {
         .sidebar-nav button:hover .sidebar-icon,
         .sidebar-nav a:hover .sidebar-icon,
         .sidebar-nav summary:hover .sidebar-icon {
-            color: var(--ms-blue);
+            color: var(--accent);
         }
 
         .sidebar-footer {
@@ -3285,7 +3306,7 @@ function Get-DefaultReportTemplate {
 
         .score-ring-fill {
             fill: none;
-            stroke: var(--ms-blue);
+            stroke: var(--accent);
             stroke-width: 16;
             stroke-linecap: round;
             transform: rotate(-90deg);
@@ -3433,7 +3454,7 @@ function Get-DefaultReportTemplate {
         .stat-card.success .value { color: var(--success); }
         .stat-card.danger .value { color: var(--danger); }
         .stat-card.warning .value { color: var(--warning); }
-        .stat-card.info .value { color: var(--ms-blue); }
+        .stat-card.info .value { color: var(--accent); }
 
         .section-card {
             padding: 24px 26px;
@@ -3500,8 +3521,8 @@ function Get-DefaultReportTemplate {
         }
 
         .pill.info {
-            color: var(--ms-blue);
-            background: rgba(15, 108, 189, 0.1);
+            color: var(--accent);
+            background: rgba(20, 125, 115, 0.1);
         }
 
         .pill.priority {
@@ -3511,12 +3532,12 @@ function Get-DefaultReportTemplate {
         }
 
         .pill.policy-on { background: rgba(76, 175, 80, 0.15); color: #2e7d32; border: 1px solid #4caf50; }
-        .pill.policy-always-on { background: rgba(15, 108, 189, 0.1); color: #0f6cbd; border: 1px solid #0f6cbd; }
+        .pill.policy-always-on { background: rgba(20, 125, 115, 0.1); color: #147d73; border: 1px solid #147d73; }
         .pill.policy-off { background: rgba(239, 83, 80, 0.15); color: #c62828; border: 1px solid #ef5350; }
         .pill.policy-na { background: rgba(148, 163, 184, 0.15); color: #64748b; border: 1px solid #94a3b8; }
 
-        .export-btn { background: rgba(15, 108, 189, 0.1); color: #0f6cbd; border: 1px solid #0f6cbd; border-radius: 8px; padding: 6px 14px; font-size: 12px; font-weight: 600; cursor: pointer; transition: background 0.2s, transform 0.1s; }
-        .export-btn:hover { background: rgba(15, 108, 189, 0.2); transform: translateY(-1px); }
+        .export-btn { background: rgba(20, 125, 115, 0.1); color: #147d73; border: 1px solid #147d73; border-radius: 8px; padding: 6px 14px; font-size: 12px; font-weight: 600; cursor: pointer; transition: background 0.2s, transform 0.1s; }
+        .export-btn:hover { background: rgba(20, 125, 115, 0.2); transform: translateY(-1px); }
         .export-btn:active { transform: translateY(0); }
 
         .category-card-grid {
@@ -3534,6 +3555,19 @@ function Get-DefaultReportTemplate {
             border: 1px solid var(--border);
             background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
             box-shadow: 0 10px 26px rgba(15, 23, 42, 0.06);
+        }
+
+        .category-card-heading {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .category-icon {
+            width: 24px;
+            height: 24px;
+            color: var(--accent);
+            flex: 0 0 auto;
         }
 
         .category-card .card-top {
@@ -3574,7 +3608,7 @@ function Get-DefaultReportTemplate {
             display: block;
             height: 100%;
             border-radius: inherit;
-            background: linear-gradient(90deg, var(--ms-blue-dark), var(--ms-blue));
+            background: linear-gradient(90deg, var(--accent-dark), var(--accent));
         }
 
         .card-metrics {
@@ -4032,10 +4066,10 @@ function Get-DefaultReportTemplate {
             <div class="sidebar-header">
                 <a class="sidebar-logo" href="#section-summary" onclick="scrollToSection('section-summary', null)">
                     <div class="brand-mark" aria-hidden="true">
-                        <span></span><span></span><span></span><span></span>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5.5 5.7v5.5c0 4.1 2.6 7.8 6.5 9.8 3.9-2 6.5-5.7 6.5-9.8V5.7L12 3Z"/><path d="m9.2 12 1.8 1.8 3.9-4"/></svg>
                     </div>
                     <div class="sidebar-brand-copy">
-                        <p class="sidebar-brand-kicker">Microsoft Defender</p>
+                        <p class="sidebar-brand-kicker">Security Assessment</p>
                         <h2 class="sidebar-brand-name">MDO Analyzer</h2>
                         <p class="sidebar-brand-subtitle">Threat policy review</p>
                     </div>
@@ -4069,10 +4103,10 @@ function Get-DefaultReportTemplate {
             <div class="brand-row">
                 <div class="brand">
                     <div class="brand-mark" aria-hidden="true">
-                        <span></span><span></span><span></span><span></span>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5.5 5.7v5.5c0 4.1 2.6 7.8 6.5 9.8 3.9-2 6.5-5.7 6.5-9.8V5.7L12 3Z"/><path d="m9.2 12 1.8 1.8 3.9-4"/></svg>
                     </div>
                     <div>
-                        <p class="eyebrow">Microsoft Defender for Office 365</p>
+                        <p class="eyebrow">Independent Security Assessment</p>
                         <h1>MDO Threat Policy Analyzer</h1>
                         <p>{{TENANT_NAME}} &middot; Executive-ready compliance analysis</p>
                     </div>
